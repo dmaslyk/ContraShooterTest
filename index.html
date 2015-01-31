@@ -17,7 +17,7 @@
 
             game.load.image('enemy', 'img/enemy.png');
 			game.load.image('player', 'img/player.png');
-            game.load.image('enemy', 'img/keef.png');
+            //game.load.image('enemy', 'img/keef.png');
 			game.load.audio('hotnigga', ['snd/htngg.mp3']);
 			game.stage.backgroundColor = '#555555';
 
@@ -54,15 +54,15 @@
 				
 				text.setText(Math.round(time)); 
 				
-				if (game.physics.arcade.distanceToPointer(player, game.input.activePointer) > 32)
+				if (game.input.activePointer.isDown)
 				{
-					game.physics.arcade.accelerateToXY(player, 1000);
+					game.physics.arcade.accelerateToXY(player, game.input.activePointer.x, game.input.activePointer.y, 300, 300, 300);
 				}
 			    //  If the sprite is > 8px away from the pointer then let's move to it
-				if (game.physics.arcade.distanceToPointer(enemy, game.input.activePointer) > 32)
+				if (game.physics.arcade.distanceBetween(enemy, player) > 32)
 				{
 					//  Make the object seek to the active pointer (mouse or touch).
-					game.physics.arcade.moveToPointer(enemy, (100 + time * 4));
+					game.physics.arcade.moveToObject(enemy, player, (100 + time * 4));
 				}
 				else
 				{
