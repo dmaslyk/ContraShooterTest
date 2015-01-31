@@ -16,6 +16,7 @@
         function preload () {
 
             game.load.image('enemy', 'img/enemy.png');
+			game.load.image('player', 'img/player.png');
 			game.load.audio('hotnigga', ['snd/htngg.mp3']);
 			game.stage.backgroundColor = '#555555';
 
@@ -28,17 +29,21 @@
         function create () {
 		
 			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
-			font: "65px Arial",
+			font: "12pt Arial",
 			fill: "#ff0044",
 			align: "center"
 			});
 		
 		    music = game.add.audio('hotnigga');
-			music.play();
+			//music.play();
 
+			player = game.add.sprite(game.world.centerX,game.world.centerY, 'player');
+			player.anchor.setTo(0.5, 0.5);
+			
             enemy = game.add.sprite(0, 0, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
 			
+			game.physics.enable(player, Phaser.Physics.ARCADE);
 			game.physics.enable(enemy, Phaser.Physics.ARCADE);
         }
 		
@@ -46,8 +51,12 @@
 				
 				time += game.time.physicsElapsed;
 				
-				text.setText(time); 
+				text.setText(Math.round(time)); 
 				
+				if (game.physics.arcade.distanceToPointer(player, game.input.activePointer) > 32)
+				{
+					game.physics.arcade.accelerateToXY(player, 1000);
+				}
 			    //  If the sprite is > 8px away from the pointer then let's move to it
 				if (game.physics.arcade.distanceToPointer(enemy, game.input.activePointer) > 32)
 				{
@@ -59,6 +68,8 @@
 					//  Otherwise turn off velocity because we're close enough to the pointer
 					enemy.body.velocity.set(0);
 				}
+				
+				enemy.rotation += 1 * game.time.physicsElapsed;
 		
 			}
 
