@@ -15,29 +15,52 @@
 
         function preload () {
 
-            game.load.image('logo', 'img/phaser.png');
+            game.load.image('enemy', 'img/enemy.png');
 			game.load.audio('hotnigga', ['snd/htngg.mp3']);
+			game.stage.backgroundColor = '#555555';
 
         }
 		
 		var logo;
 		var music;
+		var time = 0;
 
         function create () {
+		
+			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
+			font: "65px Arial",
+			fill: "#ff0044",
+			align: "center"
+			});
 		
 		    music = game.add.audio('hotnigga');
 			music.play();
 
-            logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');
-            logo.anchor.setTo(0.5, 0.5);
-
+            enemy = game.add.sprite(0, 0, 'enemy');
+            enemy.anchor.setTo(0.5, 0.5);
+			
+			game.physics.enable(enemy, Phaser.Physics.ARCADE);
         }
 		
 		function update() {
+				
+				time += game.time.physicsElapsed;
+				
+				text.setText(time); 
+				
+			    //  If the sprite is > 8px away from the pointer then let's move to it
+				if (game.physics.arcade.distanceToPointer(enemy, game.input.activePointer) > 32)
+				{
+					//  Make the object seek to the active pointer (mouse or touch).
+					game.physics.arcade.moveToPointer(enemy, (100 + time * 4));
+				}
+				else
+				{
+					//  Otherwise turn off velocity because we're close enough to the pointer
+					enemy.body.velocity.set(0);
+				}
 		
-			logo.rotation += 0.01;
-		
-		}
+			}
 
     };
 
