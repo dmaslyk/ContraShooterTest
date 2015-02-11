@@ -3,7 +3,12 @@
     <head>
         <meta charset="UTF-8" />
         <title>HOT NIGGA</title>
-        <script src="js/phaser.min.js"></script>
+        <script src="js/phaser.js"></script>
+        <style>
+            body {
+                margin: 0;
+            }
+        </style>
     </head>
     <body>
 
@@ -11,13 +16,43 @@
 
     window.onload = function() {
 
-        var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+        function generateWorld (level, scale) {
+
+            var entry = 0;
+            var tempsprite;
+
+            for(var y = 0; y<level.length; y++) {
+                for(var x = 0; x<level[y].length; x++) {
+
+                    if(level[y][x] == 0) {
+                        if( y==0 ) {
+                            entry = ((x*128)+64)*scale;
+                        }
+
+                        tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'path');
+                        tempsprite.scale.x = scale;
+                        tempsprite.scale.y = scale;
+
+                    } else if(level[y][x] == 1) {
+
+                        tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'grass');
+                        tempsprite.scale.x = scale;
+                        tempsprite.scale.y = scale;
+
+                    }
+                }
+            }
+            return entry;
+        }
 
         function preload () {
 
             game.load.image('enemy', 'img/enemy.png');
+            game.load.image('path', 'img/path.png');
+            game.load.image('grass', 'img/grass.png');
 			game.load.image('player', 'img/player.png');
-            //game.load.image('enemy', 'img/keef.png');
 			game.load.audio('hotnigga', ['snd/htngg.mp3']);
 			game.stage.backgroundColor = '#555555';
 
@@ -38,14 +73,29 @@
 		    music = game.add.audio('hotnigga');
 			//music.play();
 
-			player = game.add.sprite(game.world.centerX,game.world.centerY, 'player');
-			player.anchor.setTo(0.5, 0.5);
-			
-            enemy = game.add.sprite(0, 0, 'enemy');
+
+            var level = [
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1]
+            ];
+
+            var entrypoint = generateWorld(level, 1.0);
+
+            player = game.add.sprite(game.world.centerX,game.world.centerY, 'player');
+            player.anchor.setTo(0.5, 0.5);
+
+            enemy = game.add.sprite(entrypoint, 0, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
-			
+
 			game.physics.enable(player, Phaser.Physics.ARCADE);
 			game.physics.enable(enemy, Phaser.Physics.ARCADE);
+
         }
 		
 		function update() {
@@ -56,18 +106,7 @@
 				
 				if (game.input.activePointer.isDown)
 				{
-					game.physics.arcade.accelerateToXY(player, game.input.activePointer.x, game.input.activePointer.y, 300, 300, 300);
-				}
-			    //  If the sprite is > 8px away from the pointer then let's move to it
-				if (game.physics.arcade.distanceBetween(enemy, player) > 32)
-				{
-					//  Make the object seek to the active pointer (mouse or touch).
-					game.physics.arcade.moveToObject(enemy, player, (100 + time * 4));
-				}
-				else
-				{
-					//  Otherwise turn off velocity because we're close enough to the pointer
-					enemy.body.velocity.set(0);
+					game.physics.arcade.moveToPointer(player);
 				}
 				
 				enemy.rotation += 1 * game.time.physicsElapsed;
