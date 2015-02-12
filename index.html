@@ -16,7 +16,7 @@
 
     window.onload = function() {
 
-        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'towerdef', { preload: preload, create: create, update: update });
 
         function generateWorld (level, scale) {
 
@@ -47,6 +47,13 @@
             return entry;
         }
 
+        function spawnEnemy (entrypoint, scale) {
+            var enemy = game.add.sprite(entrypoint + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20))*scale, 0, 'enemy');
+            enemy.anchor.setTo(0.5, 0.5);
+            game.physics.enable(enemy, Phaser.Physics.ARCADE);
+            return enemy;
+        }
+
         function preload () {
 
             game.load.image('enemy', 'img/enemy.png');
@@ -57,10 +64,12 @@
 			game.stage.backgroundColor = '#555555';
 
         }
-		
-		var logo;
+
 		var music;
 		var time = 0;
+        var entrypoint;
+        var player;
+        var enemygroup;
 
         function create () {
 		
@@ -69,6 +78,9 @@
 			fill: "#ff0044",
 			align: "center"
 			});
+
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+            game.physics.arcade.setBounds(0, 0, game.width, game.height);
 		
 		    music = game.add.audio('hotnigga');
 			//music.play();
@@ -85,16 +97,16 @@
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1]
             ];
 
-            var entrypoint = generateWorld(level, 1.0);
+            entrypoint = generateWorld(level, 1.0);
 
             player = game.add.sprite(game.world.centerX,game.world.centerY, 'player');
             player.anchor.setTo(0.5, 0.5);
 
-            enemy = game.add.sprite(entrypoint, 0, 'enemy');
-            enemy.anchor.setTo(0.5, 0.5);
+            enemygroup = new Phaser.Group(game);
 
 			game.physics.enable(player, Phaser.Physics.ARCADE);
-			game.physics.enable(enemy, Phaser.Physics.ARCADE);
+
+            player.body.collideWorldBounds = true;
 
         }
 		
@@ -102,14 +114,24 @@
 				
 				time += game.time.physicsElapsed;
 				
-				text.setText(Math.round(time)); 
+				text.setText(Math.round(time));
+
+                if(time > 10 && time < 11) {
+                    enemygroup.add(spawnEnemy(entrypoint, 1.0));
+                }
+
+                if(time > 11 && time < 12) {
+                    enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
+                }
 				
 				if (game.input.activePointer.isDown)
 				{
-					game.physics.arcade.moveToPointer(player);
+					game.physics.arcade.moveToPointer(player, 200);
 				}
-				
-				enemy.rotation += 1 * game.time.physicsElapsed;
+
+                if(game.physics.arcade.distanceToPointer(player) < 16) {
+                    player.body.velocity.set(0);
+                }
 		
 			}
 
