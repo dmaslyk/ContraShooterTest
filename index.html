@@ -99,14 +99,13 @@
 
             entrypoint = generateWorld(level, 1.0);
 
-            player = game.add.sprite(game.world.centerX,game.world.centerY, 'player');
-            player.anchor.setTo(0.5, 0.5);
+            
 
             enemygroup = new Phaser.Group(game);
 
-			game.physics.enable(player, Phaser.Physics.ARCADE);
+			
 
-            player.body.collideWorldBounds = true;
+           
 			//repeats spawning enemies(seconds,amount of times,function)
 			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000,enemyWave,this)
         }
@@ -124,12 +123,12 @@
 				
 				if (game.input.activePointer.isDown)
 				{
-					game.physics.arcade.moveToPointer(player, 200);
+					//game.physics.arcade.moveToPointer(tower, 200);
+					player = game.add.sprite(game.input.mousePointer.x,game.input.mousePointer.y, 'player');
+					
 				}
 
-                if(game.physics.arcade.distanceToPointer(player) < 16) {
-                    player.body.velocity.set(0);
-                }
+                
 		
 			}
 
