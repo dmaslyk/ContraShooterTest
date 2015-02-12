@@ -107,22 +107,20 @@
 			game.physics.enable(player, Phaser.Physics.ARCADE);
 
             player.body.collideWorldBounds = true;
-
+			//repeats spawning enemies(seconds,amount of times,function)
+			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000,enemyWave,this)
         }
-		
+		//repeated function
+		function enemyWave(){
+		 enemygroup.add(spawnEnemy(entrypoint, 1.0));
+		}
 		function update() {
 				
 				time += game.time.physicsElapsed;
 				
 				text.setText(Math.round(time));
 
-                if(time > 10 && time < 11) {
-                    enemygroup.add(spawnEnemy(entrypoint, 1.0));
-                }
-
-                if(time > 11 && time < 12) {
-                    enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
-                }
+                 enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
 				
 				if (game.input.activePointer.isDown)
 				{
