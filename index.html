@@ -47,6 +47,12 @@
             return entry;
         }
 
+        function Enemy (sprite, health, type) {
+            this.sprite = sprite;
+            this.health = health;
+            this.type = type;
+        }
+
         function spawnEnemy (entrypoint, scale) {
             var enemy = game.add.sprite(entrypoint + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20))*scale, 0, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
@@ -70,6 +76,7 @@
         var entrypoint;
         var player;
         var enemygroup;
+        var text;
 
         function create () {
 		
@@ -85,6 +92,7 @@
 		    music = game.add.audio('hotnigga');
 			//music.play();
 
+            text = game.add.text(100, 100, '');
 
             var level = [
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
@@ -101,7 +109,7 @@
 
             
 
-            enemygroup = new Phaser.Group(game);
+            enemygroup = [];
 
 			
 
@@ -111,15 +119,21 @@
         }
 		//repeated function
 		function enemyWave(){
-		 enemygroup.add(spawnEnemy(entrypoint, 1.0));
+            var enemy = new Enemy(spawnEnemy(entrypoint, 1.0), 5, "blackball");
+            enemygroup.push(enemy);
 		}
+
 		function update() {
 				
 				time += game.time.physicsElapsed;
 				
 				text.setText(Math.round(time));
 
-                 enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
+                //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
+                for (var i = 0; i < enemygroup.length; i++) {
+                    var obj = enemygroup[i];
+                    game.physics.arcade.moveToXY(obj.sprite, entrypoint, 1000, 200);
+                }
 				
 				if (game.input.activePointer.isDown)
 				{
