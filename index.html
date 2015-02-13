@@ -73,10 +73,27 @@
             }
         }
 
-        function Enemy (sprite, health, type) {
+        function Enemy (sprite, health, type, path) {
             this.sprite = sprite;
             this.health = health;
             this.type = type;
+            this.current = 1;
+            this.path = path;
+            this.waypoint = this.path[this.current];
+            this.nextPath = function nextPath() {
+                if(this.current < this.path.length-1) {
+                    this.current++;
+                    this.waypoint = this.path[this.current];
+                }
+                return this.path[this.current];
+            }
+            this.isAtWaypoint = function isAtWaypoint() {
+                if(this.waypoint.y - 8 <= Math.round(this.sprite.y) && ((this.waypoint.x - Math.round(this.sprite.x)) < 20 && (this.waypoint.x - Math.round(this.sprite.x)) > -20) ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
 
         function Tower (sprite, damage, type) {
@@ -135,14 +152,14 @@
             text = game.add.text(100, 100, '');
 
             var layout = [
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
-                    [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1]
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,0,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,0,1,1,1]
             ];
             level = new Level(layout, 1.0);
 
@@ -155,11 +172,11 @@
 
 
 			//repeats spawning enemies(seconds,amount of times,function)
-			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball");
+			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
         }
 		//repeated function
-		function enemyPlace(health, type){
-            var enemy = new Enemy(spawnEnemy(level.path[0], 1.0), health, type);
+		function enemyPlace(health, type, path){
+            var enemy = new Enemy(spawnEnemy(level.path[0], 1.0), health, type, path);
             enemygroup.push(enemy);
 		}
 
@@ -177,7 +194,10 @@
                 //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
                 for (var i = 0; i < enemygroup.length; i++) {
                     var enemy = enemygroup[i];
-                    game.physics.arcade.moveToXY(enemy.sprite, level.waypoint.x, level.waypoint.y, 200);
+                    if(enemy.isAtWaypoint()) {
+                        enemy.nextPath();
+                    }
+                    game.physics.arcade.moveToXY(enemy.sprite, enemy.waypoint.x, enemy.waypoint.y, 200);
                 }
 				
 				if (game.input.activePointer.isDown)
