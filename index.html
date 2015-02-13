@@ -63,14 +63,6 @@
         function Level (layout, scale) {
             this.layout = layout;
             this.path = generateWorld(layout, scale);
-            this.current = 1;
-            this.waypoint = this.path[this.current];
-            this.nextPath = function nextPath() {
-                if(this.current < this.path.length) {
-                    this.current++;
-                }
-                return this.path[this.current];
-            }
         }
 
         function Enemy (sprite, health, type, path) {
