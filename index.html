@@ -64,8 +64,12 @@
             this.layout = layout;
             this.path = generateWorld(layout, scale);
             this.current = 1;
+            this.waypoint = this.path[this.current];
             this.nextPath = function nextPath() {
-                this.current++;
+                if(this.current < this.path.length) {
+                    this.current++;
+                }
+                return this.path[this.current];
             }
         }
 
@@ -173,7 +177,7 @@
                 //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
                 for (var i = 0; i < enemygroup.length; i++) {
                     var enemy = enemygroup[i];
-                    game.physics.arcade.moveToXY(enemy.sprite, level.path[7].x, level.path[7].y, 200);
+                    game.physics.arcade.moveToXY(enemy.sprite, level.waypoint.x, level.waypoint.y, 200);
                 }
 				
 				if (game.input.activePointer.isDown)
