@@ -18,24 +18,32 @@
 
         var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'towerdef', { preload: preload, create: create, update: update });
 
-        function generateWorld (level, scale) {
+        function generateWorld (layout, scale) {
 
-            var entry = 0;
+            var path = [];
+            path.push(new Path());
             var tempsprite;
 
-            for(var y = 0; y<level.length; y++) {
-                for(var x = 0; x<level[y].length; x++) {
+            for(var y = 0; y<layout.length; y++) {
+                for(var x = 0; x<layout[y].length; x++) {
 
-                    if(level[y][x] == 0) {
+                    if(layout[y][x] == 0) {
                         if( y==0 ) {
-                            entry = ((x*128)+64)*scale;
+                            path[0].x = ((x*128)+64)*scale;
+                            path[0].y = 0;
+                        } else {
+                            var temp = 0;
+                            temp = new Path();
+                            temp.x = ((x * 128) + 64) * scale;
+                            temp.y = ((y * 128) + 64) * scale;
+                            path.push(temp);
                         }
 
                         tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'path');
                         tempsprite.scale.x = scale;
                         tempsprite.scale.y = scale;
 
-                    } else if(level[y][x] == 1) {
+                    } else if(layout[y][x] == 1) {
 
                         tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'grass');
                         tempsprite.scale.x = scale;
@@ -44,7 +52,21 @@
                     }
                 }
             }
-            return entry;
+            return path;
+        }
+
+        function Path () {
+            this.x = 0;
+            this.y = 0;
+        }
+
+        function Level (layout, scale) {
+            this.layout = layout;
+            this.path = generateWorld(layout, scale);
+            this.current = 1;
+            this.nextPath = function nextPath() {
+                this.current++;
+            }
         }
 
         function Enemy (sprite, health, type) {
@@ -60,7 +82,7 @@
         }
 
         function spawnEnemy (entrypoint, scale) {
-            var enemy = game.add.sprite(entrypoint + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20)), 0, 'enemy');
+            var enemy = game.add.sprite(entrypoint.x + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20)), entrypoint.y, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
             game.physics.enable(enemy, Phaser.Physics.ARCADE);
             return enemy;
@@ -86,11 +108,11 @@
 
 		var music;
 		var time = 0;
-        var entrypoint;
         var player;
         var enemygroup;
         var towergroup;
         var text;
+        var level;
 
         function create () {
 		
@@ -108,7 +130,7 @@
 
             text = game.add.text(100, 100, '');
 
-            var level = [
+            var layout = [
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
@@ -118,8 +140,7 @@
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
                     [1,1,1,1,1,1,0,1,1,1,1,1,1,1,1]
             ];
-
-            entrypoint = generateWorld(level, 1.0);
+            level = new Level(layout, 1.0);
 
             
 
@@ -134,7 +155,7 @@
         }
 		//repeated function
 		function enemyPlace(health, type){
-            var enemy = new Enemy(spawnEnemy(entrypoint, 1.0), health, type);
+            var enemy = new Enemy(spawnEnemy(level.path[0], 1.0), health, type);
             enemygroup.push(enemy);
 		}
 
@@ -152,7 +173,7 @@
                 //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
                 for (var i = 0; i < enemygroup.length; i++) {
                     var enemy = enemygroup[i];
-                    game.physics.arcade.moveToXY(enemy.sprite, entrypoint, enemy.sprite.y + 1000, 200);
+                    game.physics.arcade.moveToXY(enemy.sprite, level.path[7].x, level.path[7].y, 200);
                 }
 				
 				if (game.input.activePointer.isDown)
