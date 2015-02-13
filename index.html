@@ -53,11 +53,24 @@
             this.type = type;
         }
 
+        function Tower (sprite, damage, type) {
+            this.sprite = sprite;
+            this.damage = damage;
+            this.type = type;
+        }
+
         function spawnEnemy (entrypoint, scale) {
-            var enemy = game.add.sprite(entrypoint + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20))*scale, 0, 'enemy');
+            var enemy = game.add.sprite(entrypoint + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20)), 0, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
             game.physics.enable(enemy, Phaser.Physics.ARCADE);
             return enemy;
+        }
+
+        function spawnTower (scale) {
+            var tower = game.add.sprite(game.input.mousePointer.x,game.input.mousePointer.y, 'player');
+            tower.anchor.setTo(0.5, 0.5);
+            game.physics.enable(tower, Phaser.Physics.ARCADE);
+            return tower;
         }
 
         function preload () {
@@ -76,6 +89,7 @@
         var entrypoint;
         var player;
         var enemygroup;
+        var towergroup;
         var text;
 
         function create () {
@@ -110,18 +124,24 @@
             
 
             enemygroup = [];
+            towergroup = [];
 
 			
 
-           
+
 			//repeats spawning enemies(seconds,amount of times,function)
-			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000,enemyWave,this)
+			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball");
         }
 		//repeated function
-		function enemyWave(){
-            var enemy = new Enemy(spawnEnemy(entrypoint, 1.0), 5, "blackball");
+		function enemyPlace(health, type){
+            var enemy = new Enemy(spawnEnemy(entrypoint, 1.0), health, type);
             enemygroup.push(enemy);
 		}
+
+        function towerPlace(damage, type) {
+            var tower = new Tower(spawnTower(1.0), damage, type);
+            towergroup.push(tower);
+        }
 
 		function update() {
 				
@@ -131,15 +151,14 @@
 
                 //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
                 for (var i = 0; i < enemygroup.length; i++) {
-                    var obj = enemygroup[i];
-                    game.physics.arcade.moveToXY(obj.sprite, entrypoint, 1000, 200);
+                    var enemy = enemygroup[i];
+                    game.physics.arcade.moveToXY(enemy.sprite, entrypoint, enemy.sprite.y + 1000, 200);
                 }
 				
 				if (game.input.activePointer.isDown)
 				{
 					//game.physics.arcade.moveToPointer(tower, 200);
-					player = game.add.sprite(game.input.mousePointer.x,game.input.mousePointer.y, 'player');
-					
+                    towerPlace(1, "arrow");
 				}
 
                 
