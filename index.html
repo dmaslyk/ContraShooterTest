@@ -126,9 +126,11 @@
         var towergroup;
         var text;
         var level;
+        var currentTower = 0;
+        var testText;
 
         function create () {
-		
+
 			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
 			font: "12pt Arial",
 			fill: "#ff0044",
@@ -137,7 +139,7 @@
 
             game.physics.startSystem(Phaser.Physics.ARCADE);
             game.physics.arcade.setBounds(0, 0, game.width, game.height);
-		
+
 		    music = game.add.audio('hotnigga');
 			//music.play();
 
@@ -155,14 +157,14 @@
             ];
             level = new Level(layout, 1.0);
 
-            
+
 
             enemygroup = [];
             towergroup = [];
 
-			
 
 
+            testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
 			//repeats spawning enemies(seconds,amount of times,function)
 			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
         }
@@ -176,11 +178,28 @@
             var tower = new Tower(spawnTower(1.0), damage, type);
             towergroup.push(tower);
         }
+        function isoverlapping(currentTower){
+            if(currentTower == 0)
+            {
+                return false;
+            }
+            for(var i = 0;i < towergroup.length;i++)
+            {
+            var tower = towergroup[i];
+                var x = tower.sprite.x;
+                var y = tower.sprite.y;
+                if(x == game.input.mousePointer.x && y == game.input.mousePointer.y)
+                {
+                    return true;
 
+                }
+            }
+            return false;
+        }
 		function update() {
-				
+
 				time += game.time.physicsElapsed;
-				
+
 				text.setText(Math.round(time));
 
                 //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
@@ -191,16 +210,19 @@
                     }
                     game.physics.arcade.moveToXY(enemy.sprite, enemy.waypoint.x, enemy.waypoint.y, 200);
                 }
-				
+
 				if (game.input.activePointer.isDown)
-				{
-					//game.physics.arcade.moveToPointer(tower, 200);
-                    towerPlace(1, "arrow");
+                    if(isoverlapping(currentTower) == false) {
+                        //game.physics.arcade.moveToPointer(tower, 200);
+                        towerPlace(1, "arrow");
+                        currentTower = currentTower + 1;
+                        testText.text = 'Current Towers ' + currentTower;
+                    }
 				}
 
-                
-		
-			}
+
+
+
 
     };
 
