@@ -24,6 +24,7 @@
         var enemygroup;
         var towergroup;
         var typegroup;
+        var bulletgroup;
         var text;
         var level;
         var currentTower = 1;
@@ -73,6 +74,9 @@
         function Bullet(image, velocity) {
             this.image = image;
             this.velocity = velocity;
+            this.checkWorldBounds = true;
+            this.outOfBoundsKill = true;
+            bulletgroup.push(bullet);
         }
 
         function Tower (sprite, damage, type) {
@@ -85,6 +89,7 @@
                 bullet.anchor.setTo(0.5, 0.5);
                 bullet.outOfBoundsKill = true;
                 bullet.checkWorldBounds = true;
+                bullet.lifespan = 1000;
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
             }
@@ -201,7 +206,7 @@
             enemygroup = [];
             towergroup = [];
             typegroup = [];
-
+            bulletgroup = [];
             var bullet = new Bullet('bullet', 2000);
             typegroup.push(new Type('arrow', bullet));
 
