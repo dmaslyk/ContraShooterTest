@@ -18,51 +18,28 @@
 
         var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'towerdef', { preload: preload, create: create, update: update });
 
-        function generateWorld (layout, scale) {
-
-            var path = [];
-            path.push(new Path());
-            var tempsprite;
-
-            for(var y = 0; y<layout.length; y++) {
-                for(var x = 0; x<layout[y].length; x++) {
-
-                    if(layout[y][x] == 0) {
-                        if( y==0 ) {
-                            path[0].x = ((x*128)+64)*scale;
-                            path[0].y = 0;
-                        } else {
-                            var temp = 0;
-                            temp = new Path();
-                            temp.x = ((x * 128) + 64) * scale;
-                            temp.y = ((y * 128) + 64) * scale;
-                            path.push(temp);
-                        }
-
-                        tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'path');
-                        tempsprite.scale.x = scale;
-                        tempsprite.scale.y = scale;
-
-                    } else if(layout[y][x] == 1) {
-
-                        tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'grass');
-                        tempsprite.scale.x = scale;
-                        tempsprite.scale.y = scale;
-
-                    }
-                }
-            }
-            return path;
-        }
+        var music;
+        var time = 0;
+        var player;
+        var enemygroup;
+        var towergroup;
+        var typegroup;
+        var text;
+        var level;
+        var currentTower = 1;
+        var testText;
+        var bullet;
+        var firingTimer = 0;
+        var scale = 1.0;
 
         function Path () {
             this.x = 0;
             this.y = 0;
         }
 
-        function Level (layout, scale) {
+        function Level (layout) {
             this.layout = layout;
-            this.path = generateWorld(layout, scale);
+            this.path = generateWorld(layout);
         }
 
         function Enemy (sprite, health, type, path) {
@@ -88,20 +65,89 @@
             }
         }
 
+        function Type(name, bullet) {
+            this.name = name;
+            this.bullet = bullet;
+        }
+
+        function Bullet(image, velocity) {
+            this.image = image;
+            this.velocity = velocity;
+        }
+
         function Tower (sprite, damage, type) {
             this.sprite = sprite;
             this.damage = damage;
             this.type = type;
+            this.bullet = type.bullet;
+            this.fireAtTarget = function fireAtTarget(target) {
+                var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
+                bullet.anchor.setTo(0.5, 0.5);
+                game.physics.enable(bullet, Phaser.Physics.ARCADE);
+                game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
+            }
+            this.fireAtClosest = function fireAtClosest() {
+                var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
+                bullet.anchor.setTo(0.5, 0.5);
+                game.physics.enable(bullet, Phaser.Physics.ARCADE);
+                var target;
+                var previous = 0;
+                for (var i = 0; i < enemygroup.length; i++) {
+                    var distance = game.physics.arcade.distanceBetween(bullet, enemygroup[i].sprite);
+                    if(distance < previous || previous == 0) {
+                        previous = distance;
+                        target = enemygroup[i].sprite;
+                    }
+                }
+                game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
+            }
         }
 
-        function spawnEnemy (entrypoint, scale) {
+        function generateWorld (layout) {
+
+            var path = [];
+            path.push(new Path());
+            var tempsprite;
+
+            for(var y = 0; y<layout.length; y++) {
+                for(var x = 0; x<layout[y].length; x++) {
+
+                    if(layout[y][x] == 0) {
+                        if( y==0 ) {
+                            path[0].x = ((x*128)+64)*scale;
+                            path[0].y = 0;
+                        } else {
+                            var temp = 0;
+                            temp = new Path();
+                            temp.x = ((x * 128) + 64) * scale;
+                            temp.y = ((y * 128) + 64) * scale;
+                            path.push(temp);
+                        }
+
+                        tempsprite = game.add.sprite((x * 128) * scale, (y * 128) * scale, 'path');
+                        tempsprite.scale.x = scale;
+                        tempsprite.scale.y = scale;
+
+                    } else if(layout[y][x] == 1) {
+
+                        tempsprite = game.add.sprite((x*128)*scale, (y*128)*scale, 'grass');
+                        tempsprite.scale.x = scale;
+                        tempsprite.scale.y = scale;
+
+                    }
+                }
+            }
+            return path;
+        }
+
+        function spawnEnemy (entrypoint) {
             var enemy = game.add.sprite(entrypoint.x + (game.rnd.integerInRange(0, 20) - game.rnd.integerInRange(0, 20)), entrypoint.y, 'enemy');
             enemy.anchor.setTo(0.5, 0.5);
             game.physics.enable(enemy, Phaser.Physics.ARCADE);
             return enemy;
         }
 
-        function spawnTower (scale) {
+        function spawnTower () {
             var tower = game.add.sprite(game.input.mousePointer.x,game.input.mousePointer.y, 'player');
             tower.anchor.setTo(0.5, 0.5);
             game.physics.enable(tower, Phaser.Physics.ARCADE);
@@ -119,19 +165,6 @@
 			game.stage.backgroundColor = '#555555';
 
         }
-
-		var music;
-		var time = 0;
-        var player;
-        var enemygroup;
-        var towergroup;
-        var text;
-        var level;
-        var currentTower = 0;
-        var testText;
-        var bullet;
-        var firingTimer = 0;
-
 
         function create () {
 
@@ -160,45 +193,47 @@
                     [1,1,1,1,1,1,1,1,1,1,1,0,1,1,1],
                     [1,1,1,1,1,1,1,1,1,1,1,0,1,1,1]
             ];
-            level = new Level(layout, 1.0);
-
+            level = new Level(layout);
 
 
             enemygroup = [];
             towergroup = [];
+            typegroup = [];
 
-
+            var bullet = new Bullet('bullet', 2000);
+            typegroup.push(new Type('arrow', bullet));
 
             testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
 			//repeats spawning enemies(seconds,amount of times,function)
 			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
-            bullet = game.add.group();
+            /*bullet = game.add.group();
             bullet.enableBody = true;
             bullet.physicsBodyType = Phaser.Physics.ARCADE;
             bullet.createMultiple(30, 'bullet');
             bullet.setAll('anchor.x', 0.5);
             bullet.setAll('anchor.y', 1);
             bullet.setAll('outOfBoundsKill', true);
-            bullet.setAll('checkWorldBounds', true);
+            bullet.setAll('checkWorldBounds', true);*/
         }
 		//repeated function
 		function enemyPlace(health, type, path){
-            var enemy = new Enemy(spawnEnemy(level.path[0], 1.0), health, type, path);
+            var enemy = new Enemy(spawnEnemy(level.path[0]), health, type, path);
             enemygroup.push(enemy);
 		}
 
         function towerPlace(damage, type) {
-            var tower = new Tower(spawnTower(1.0), damage, type);
+            var tower = new Tower(spawnTower(), damage, type);
             towergroup.push(tower);
         }
-        function isoverlapping(currentTower){
+        function isOverlapping(){
 
             for(var i = 0;i < towergroup.length;i++)
             {
             var tower = towergroup[i];
                 var x = tower.sprite.x;
                 var y = tower.sprite.y;
-                if(x == game.input.mousePointer.x && y == game.input.mousePointer.y )
+                if(x <= game.input.mousePointer.x + (64 * scale) && y <= game.input.mousePointer.y + (64 * scale) &&
+                        x >= game.input.mousePointer.x - (64 * scale) && y >= game.input.mousePointer.y - (64 * scale))
                 {
                     return true;
 
@@ -225,33 +260,41 @@
         }
 		function update() {
 
-				time += game.time.physicsElapsed;
+            time += game.time.physicsElapsed;
 
-				text.setText(Math.round(time));
+            text.setText(Math.round(time));
 
-                //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
-                for (var i = 0; i < enemygroup.length; i++) {
-                    var enemy = enemygroup[i];
-                    if(enemy.isAtWaypoint()) {
-                        enemy.nextPath();
-                    }
-                    game.physics.arcade.moveToXY(enemy.sprite, enemy.waypoint.x, enemy.waypoint.y, 200);
+            //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
+            for (var i = 0; i < enemygroup.length; i++) {
+                var enemy = enemygroup[i];
+                if (enemy.isAtWaypoint()) {
+                    enemy.nextPath();
                 }
+                game.physics.arcade.moveToXY(enemy.sprite, enemy.waypoint.x, enemy.waypoint.y, 200);
+            }
 
-				if (game.input.activePointer.isDown)
-                    if(isoverlapping(currentTower) == false) {
-                        //game.physics.arcade.moveToPointer(tower, 200);
-                        towerPlace(1, "arrow");
-                        currentTower = currentTower + 1;
-                        testText.text = 'Current Towers ' + currentTower;
-                    }
-				}
-                if(currentTower > 0)
-                {
-                    towerFires();
+            if (game.input.activePointer.isDown) {
+                if (isOverlapping(currentTower) == false) {
+                    //game.physics.arcade.moveToPointer(tower, 200);
+                    towerPlace(1, typegroup[0]);
+                    currentTower = currentTower + 1;
+                    testText.text = 'Current Towers ' + currentTower;
                 }
-                game.physics.arcade.overlap(bullet,enemygroup,bulletHitsEnemy,null,this);
+            }
 
+            if (time > 2.100) {
+                if (typeof towergroup !== "undefined") {
+                    for (var i = 0; i < towergroup.length; i++) {
+                        if (typeof enemygroup !== "undefined") {
+                            //towergroup[i].fireAtTarget(enemygroup[0].sprite);
+                            towergroup[i].fireAtClosest();
+                        }
+                    }
+                }
+            }
+
+            //game.physics.arcade.overlap(bullet,enemygroup,bulletHitsEnemy,null,this);
+        }
 
 
 
