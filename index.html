@@ -114,6 +114,7 @@
             game.load.image('path', 'img/path.png');
             game.load.image('grass', 'img/grass.png');
 			game.load.image('player', 'img/player.png');
+            game.load.image('bullet','img/bullet.png');
 			game.load.audio('hotnigga', ['snd/htngg.mp3']);
 			game.stage.backgroundColor = '#555555';
 
@@ -128,8 +129,12 @@
         var level;
         var currentTower = 0;
         var testText;
+        var bullet;
+        var firingTimer = 0;
+
 
         function create () {
+
 
 			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
 			font: "12pt Arial",
@@ -167,6 +172,14 @@
             testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
 			//repeats spawning enemies(seconds,amount of times,function)
 			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
+            bullet = game.add.group();
+            bullet.enableBody = true;
+            bullet.physicsBodyType = Phaser.Physics.ARCADE;
+            bullet.createMultiple(30, 'bullet');
+            bullet.setAll('anchor.x', 0.5);
+            bullet.setAll('anchor.y', 1);
+            bullet.setAll('outOfBoundsKill', true);
+            bullet.setAll('checkWorldBounds', true);
         }
 		//repeated function
 		function enemyPlace(health, type, path){
@@ -179,22 +192,36 @@
             towergroup.push(tower);
         }
         function isoverlapping(currentTower){
-            if(currentTower == 0)
-            {
-                return false;
-            }
+
             for(var i = 0;i < towergroup.length;i++)
             {
             var tower = towergroup[i];
                 var x = tower.sprite.x;
                 var y = tower.sprite.y;
-                if(x == game.input.mousePointer.x && y == game.input.mousePointer.y)
+                if(x == game.input.mousePointer.x && y == game.input.mousePointer.y )
                 {
                     return true;
 
                 }
+
+               // if(towergroup[i].contains())
             }
             return false;
+        }
+        function bulletHitsEnemy(enemy,bullet){
+            bullet.kill();
+            enemy.kill();
+        }
+        function towerFires(){
+            bullet = bullet.getFirstExists(false);
+            if(towergroup > 0)
+            {
+                //temporary for just the first tower
+                var shooter = towergroup[0];
+                bullet.reset(shooter.body.x,shooter.body.y);
+                game.physics.arcade.moveToObject(bullet,enemygroup,120);
+                firingTimer = game.time.now + 2000;
+            }
         }
 		function update() {
 
@@ -219,7 +246,11 @@
                         testText.text = 'Current Towers ' + currentTower;
                     }
 				}
-
+                if(currentTower > 0)
+                {
+                    towerFires();
+                }
+                game.physics.arcade.overlap(bullet,enemygroup,bulletHitsEnemy,null,this);
 
 
 
