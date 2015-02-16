@@ -83,6 +83,8 @@
             this.fireAtTarget = function fireAtTarget(target) {
                 var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
                 bullet.anchor.setTo(0.5, 0.5);
+                bullet.outOfBoundsKill = true;
+                bullet.checkWorldBounds = true;
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
             }
@@ -264,7 +266,7 @@
                 if (isOverlapping(currentTower) == false) {
                     //game.physics.arcade.moveToPointer(tower, 200);
                     towerPlace(1, typegroup[0]);
-                    currentTower = currentTower;
+                    currentTower = currentTower++;
                     testText.text = 'Current Towers ' + currentTower;
                 }
             }
