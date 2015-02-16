@@ -74,9 +74,6 @@
         function Bullet(image, velocity) {
             this.image = image;
             this.velocity = velocity;
-            this.checkWorldBounds = true;
-            this.outOfBoundsKill = true;
-            bulletgroup.push(bullet);
         }
 
         function Tower (sprite, damage, type) {
@@ -90,6 +87,7 @@
                 bullet.outOfBoundsKill = true;
                 bullet.checkWorldBounds = true;
                 bullet.lifespan = 1000;
+                bullet.events.onOutOfBounds.add(destroyBullet, this);
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
             }
@@ -97,6 +95,10 @@
                 var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
                 bullet.anchor.setTo(0.5, 0.5);
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
+                bullet.outOfBoundsKill = true;
+                bullet.checkWorldBounds = true;
+                bullet.lifespan = 1000;
+                bullet.events.onOutOfBounds.add(destroyBullet, this);
                 var target;
                 var previous = 0;
                 for (var i = 0; i < enemygroup.length; i++) {
@@ -161,6 +163,10 @@
             return tower;
         }
 
+        function destroyBullet(sprite) {
+            sprite.destroy();
+        }
+
         function preload () {
 
             game.load.image('enemy', 'img/enemy.png');
@@ -207,6 +213,7 @@
             towergroup = [];
             typegroup = [];
             bulletgroup = [];
+
             var bullet = new Bullet('bullet', 2000);
             typegroup.push(new Type('arrow', bullet));
 
@@ -229,7 +236,7 @@
 
             for(var i = 0;i < towergroup.length;i++)
             {
-            var tower = towergroup[i];
+                var tower = towergroup[i];
                 var x = tower.sprite.x;
                 var y = tower.sprite.y;
                 if(x <= game.input.mousePointer.x + (64 * scale) && y <= game.input.mousePointer.y + (64 * scale) &&
