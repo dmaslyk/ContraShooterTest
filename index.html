@@ -250,9 +250,14 @@
             for (var i = 0; i < enemygroup.length; i++) {
                 var enemy = enemygroup[i];
                 if (enemy.isAtWaypoint()) {
+                    var tempwaypoint = enemy.waypoint;
                     enemy.nextPath();
                 }
                 game.physics.arcade.moveToXY(enemy.sprite, enemy.waypoint.x, enemy.waypoint.y, 200);
+                if(tempwaypoint == enemy.waypoint) {
+                    enemy.sprite.destroy();
+                    enemygroup.splice(i,1);
+                }
             }
 
             if (game.input.activePointer.isDown) {
