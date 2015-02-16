@@ -206,14 +206,6 @@
             testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
 			//repeats spawning enemies(seconds,amount of times,function)
 			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
-            /*bullet = game.add.group();
-            bullet.enableBody = true;
-            bullet.physicsBodyType = Phaser.Physics.ARCADE;
-            bullet.createMultiple(30, 'bullet');
-            bullet.setAll('anchor.x', 0.5);
-            bullet.setAll('anchor.y', 1);
-            bullet.setAll('outOfBoundsKill', true);
-            bullet.setAll('checkWorldBounds', true);*/
         }
 		//repeated function
 		function enemyPlace(health, type, path){
@@ -225,6 +217,7 @@
             var tower = new Tower(spawnTower(), damage, type);
             towergroup.push(tower);
         }
+
         function isOverlapping(){
 
             for(var i = 0;i < towergroup.length;i++)
@@ -243,26 +236,15 @@
             }
             return false;
         }
+
         function bulletHitsEnemy(enemy,bullet){
             bullet.kill();
             enemy.kill();
         }
-        function towerFires(){
-            bullet = bullet.getFirstExists(false);
-            if(towergroup > 0)
-            {
-                //temporary for just the first tower
-                var shooter = towergroup[0];
-                bullet.reset(shooter.body.x,shooter.body.y);
-                game.physics.arcade.moveToObject(bullet,enemygroup,120);
-                firingTimer = game.time.now + 2000;
-            }
-        }
+
 		function update() {
 
             time += game.time.physicsElapsed;
-
-            text.setText(Math.round(time));
 
             //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
             for (var i = 0; i < enemygroup.length; i++) {
@@ -277,18 +259,16 @@
                 if (isOverlapping(currentTower) == false) {
                     //game.physics.arcade.moveToPointer(tower, 200);
                     towerPlace(1, typegroup[0]);
-                    currentTower = currentTower + 1;
+                    currentTower = currentTower;
                     testText.text = 'Current Towers ' + currentTower;
                 }
             }
 
             if (time > 2.100) {
-                if (typeof towergroup !== "undefined") {
+                if (typeof towergroup !== "undefined" && typeof enemygroup !== "undefined") {
                     for (var i = 0; i < towergroup.length; i++) {
-                        if (typeof enemygroup !== "undefined") {
                             //towergroup[i].fireAtTarget(enemygroup[0].sprite);
                             towergroup[i].fireAtClosest();
-                        }
                     }
                 }
             }
