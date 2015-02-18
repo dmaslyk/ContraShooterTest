@@ -86,7 +86,7 @@
                 bullet.anchor.setTo(0.5, 0.5);
                 bullet.outOfBoundsKill = true;
                 bullet.checkWorldBounds = true;
-                bullet.lifespan = 1000;
+                bullet.lifespan = 5000;
                 bullet.events.onOutOfBounds.add(destroyBullet, this);
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
@@ -99,7 +99,8 @@
                     game.physics.enable(bullet, Phaser.Physics.ARCADE);
                     bullet.outOfBoundsKill = true;
                     bullet.checkWorldBounds = true;
-                    bullet.lifespan = 1000;
+                    bullet.lifespan = 5000;
+                    bullet.i = bulletgroup.length;
                     bullet.events.onOutOfBounds.add(destroyBullet, this);
                     var target;
                     var previous = 0;
@@ -170,6 +171,7 @@
 
         function destroyBullet(sprite) {
             sprite.destroy();
+            bulletgroup.splice(sprite.i, 1);
         }
 
         function preload () {
@@ -185,7 +187,6 @@
         }
 
         function create () {
-
 
 			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
 			    font: "12pt Arial",
@@ -237,7 +238,6 @@
         }
 
         function isOverlapping(){
-
             for(var i = 0;i < towergroup.length;i++)
             {
                 var tower = towergroup[i];
@@ -253,10 +253,28 @@
             return false;
         }
 
+        function hasCollided(){
+            for(var i = 0;i < enemygroup.length;i++)
+            {
+                for(var x = 0;x < bulletgroup.length;x++)
+                {
+                    var enemy = enemygroup[i].sprite;
+                    var bullet = bulletgroup[x];
+                    if(enemy.x >= bullet.x - 32 && enemy.y >= bullet.y - 32 &&
+                            enemy.x <= bullet.x + 32 && enemy.y <= bullet.y + 32)
+                    {
+                        var temp = { i:i, x:x };
+                        return temp;
+                    }
+                }
+            }
+            return false;
+        }
+
         function bulletHitsEnemy(i, x){
             enemygroup[i].sprite.destroy();
             enemygroup.splice(i,1);
-            bulletgroup[x].sprite.destroy();
+            bulletgroup[x].destroy();
             bulletgroup.splice(i,1);
         }
 
@@ -279,8 +297,13 @@
 
             if (game.input.activePointer.isDown) {
                 if (isOverlapping() == false) {
-                    towerPlace(1, typegroup[0], 1.0);
+                    towerPlace(1, typegroup[0], 500);
                 }
+            }
+
+            var temp = hasCollided();
+            if(temp != false) {
+                bulletHitsEnemy(temp.i, temp.x);
             }
 
             /*for (var i = 0; i < enemygroup.length; i++) {
