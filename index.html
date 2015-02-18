@@ -27,7 +27,6 @@
         var bulletgroup;
         var text;
         var level;
-        var currentTower = 1;
         var testText;
         var bullet;
         var scale = 1.0;
@@ -91,6 +90,7 @@
                 bullet.events.onOutOfBounds.add(destroyBullet, this);
                 game.physics.enable(bullet, Phaser.Physics.ARCADE);
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
+                bulletgroup.push(bullet);
             }
             this.fireAtClosest = function fireAtClosest() {
                 var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
@@ -110,7 +110,9 @@
                     }
                 }
                 game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
+                bulletgroup.push(bullet);
             }
+            game.time.events.loop(Phaser.Timer.SECOND, this.fireAtClosest, this);
         }
 
         function generateWorld (layout) {
@@ -184,9 +186,9 @@
 
 
 			text = game.add.text(game.world.centerX, game.world.centerY, "Test", {
-			font: "12pt Arial",
-			fill: "#ff0044",
-			align: "center"
+			    font: "12pt Arial",
+			    fill: "#ff0044",
+			    align: "center"
 			});
 
             game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -209,7 +211,6 @@
             ];
             level = new Level(layout);
 
-
             enemygroup = [];
             towergroup = [];
             typegroup = [];
@@ -220,7 +221,7 @@
 
             testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
 			//repeats spawning enemies(seconds,amount of times,function)
-			game.time.events.repeat(Phaser.Timer.SECOND * 2,1000, enemyPlace,this, 5, "blackball", level.path);
+			game.time.events.loop(Phaser.Timer.SECOND * 2, enemyPlace, this, 5, "blackball", level.path);
         }
 		//repeated function
 		function enemyPlace(health, type, path){
@@ -246,23 +247,21 @@
                     return true;
 
                 }
-
-               // if(towergroup[i].contains())
             }
             return false;
         }
 
-        function bulletHitsEnemy(enemy,bullet){
-            bullet.kill();
-            enemy.kill();
+        function bulletHitsEnemy(i, x){
+            enemygroup[i].sprite.destroy();
+            enemygroup.splice(i,1);
+            bulletgroup[x].sprite.destroy();
+            bulletgroup.splice(i,1);
         }
 
 		function update() {
 
             time += game.time.physicsElapsed;
-            timer += game.time.physicsElapsed;
 
-            //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
             for (var i = 0; i < enemygroup.length; i++) {
                 var enemy = enemygroup[i];
                 if (enemy.isAtWaypoint()) {
@@ -277,27 +276,33 @@
             }
 
             if (game.input.activePointer.isDown) {
-                if (isOverlapping(currentTower) == false) {
-                    //game.physics.arcade.moveToPointer(tower, 200);
+                if (isOverlapping() == false) {
                     towerPlace(1, typegroup[0], 1.0);
-                    currentTower = currentTower++;
-                    testText.text = 'Current Towers ' + currentTower;
                 }
             }
+
+            /*for (var i = 0; i < enemygroup.length; i++) {
+                for (var x = 0; x < bulletgroup.length; x++) {
+                    var test = game.physics.arcade.overlap(enemygroup[i], bulletgroup[x], function (i, x) {
+                        bulletHitsEnemy(i, x);
+                    });
+                    console.log(test);
+                }
+            }*/
 
             if (time > 2.100) {
                 if (typeof towergroup !== "undefined" && typeof enemygroup !== "undefined") {
                     for (var i = 0; i < towergroup.length; i++) {
-                        if(timer > towergroup[i].firetimer) {
+                        var tower = towergroup[i];
+                        if(timer + tower.firetimer < time + tower.firetimer) {
                             //towergroup[i].fireAtTarget(enemygroup[0].sprite);
-                            towergroup[i].fireAtClosest();
-                            timer = 0;
+                            //tower.fireAtClosest();
+                            timer = time;
                         }
                     }
                 }
             }
 
-            //game.physics.arcade.overlap(bullet,enemygroup,bulletHitsEnemy,null,this);
         }
 
 
