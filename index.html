@@ -93,26 +93,28 @@
                 bulletgroup.push(bullet);
             }
             this.fireAtClosest = function fireAtClosest() {
-                var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
-                bullet.anchor.setTo(0.5, 0.5);
-                game.physics.enable(bullet, Phaser.Physics.ARCADE);
-                bullet.outOfBoundsKill = true;
-                bullet.checkWorldBounds = true;
-                bullet.lifespan = 1000;
-                bullet.events.onOutOfBounds.add(destroyBullet, this);
-                var target;
-                var previous = 0;
-                for (var i = 0; i < enemygroup.length; i++) {
-                    var distance = game.physics.arcade.distanceBetween(bullet, enemygroup[i].sprite);
-                    if(distance < previous || previous == 0) {
-                        previous = distance;
-                        target = enemygroup[i].sprite;
+                if (typeof enemygroup !== "undefined" && enemygroup.length > 0) {
+                    var bullet = game.add.sprite(this.sprite.x * scale, this.sprite.y * scale, this.bullet.image);
+                    bullet.anchor.setTo(0.5, 0.5);
+                    game.physics.enable(bullet, Phaser.Physics.ARCADE);
+                    bullet.outOfBoundsKill = true;
+                    bullet.checkWorldBounds = true;
+                    bullet.lifespan = 1000;
+                    bullet.events.onOutOfBounds.add(destroyBullet, this);
+                    var target;
+                    var previous = 0;
+                    for (var i = 0; i < enemygroup.length; i++) {
+                        var distance = game.physics.arcade.distanceBetween(bullet, enemygroup[i].sprite);
+                        if (distance < previous || previous == 0) {
+                            previous = distance;
+                            target = enemygroup[i].sprite;
+                        }
                     }
+                    game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
+                    bulletgroup.push(bullet);
                 }
-                game.physics.arcade.moveToObject(bullet, target, this.bullet.velocity);
-                bulletgroup.push(bullet);
             }
-            game.time.events.loop(Phaser.Timer.SECOND, this.fireAtClosest, this);
+            game.time.events.loop(this.firetimer, this.fireAtClosest, this);
         }
 
         function generateWorld (layout) {
@@ -216,7 +218,7 @@
             typegroup = [];
             bulletgroup = [];
 
-            var bullet = new Bullet('bullet', 2000);
+            var bullet = new Bullet('bullet', 500);
             typegroup.push(new Type('arrow', bullet));
 
             testText = game.add.text(32, 550, '0', { font: "20px Arial", fill: "#ffffff", align: "left" });
@@ -290,7 +292,7 @@
                 }
             }*/
 
-            if (time > 2.100) {
+            /*if (time > 2.100) {
                 if (typeof towergroup !== "undefined" && typeof enemygroup !== "undefined") {
                     for (var i = 0; i < towergroup.length; i++) {
                         var tower = towergroup[i];
@@ -301,7 +303,7 @@
                         }
                     }
                 }
-            }
+            }*/
 
         }
 
