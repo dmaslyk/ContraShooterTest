@@ -30,8 +30,8 @@
         var currentTower = 1;
         var testText;
         var bullet;
-        var firingTimer = 0;
         var scale = 1.0;
+        var timer = 0;
 
         function Path () {
             this.x = 0;
@@ -76,11 +76,12 @@
             this.velocity = velocity;
         }
 
-        function Tower (sprite, damage, type) {
+        function Tower (sprite, damage, type, firetimer) {
             this.sprite = sprite;
             this.damage = damage;
             this.type = type;
             this.bullet = type.bullet;
+            this.firetimer = firetimer;
             this.fireAtTarget = function fireAtTarget(target) {
                 var bullet = game.add.sprite(this.sprite.x*scale, this.sprite.y*scale, this.bullet.image);
                 bullet.anchor.setTo(0.5, 0.5);
@@ -227,8 +228,8 @@
             enemygroup.push(enemy);
 		}
 
-        function towerPlace(damage, type) {
-            var tower = new Tower(spawnTower(), damage, type);
+        function towerPlace(damage, type, firetimer) {
+            var tower = new Tower(spawnTower(), damage, type, firetimer);
             towergroup.push(tower);
         }
 
@@ -259,6 +260,7 @@
 		function update() {
 
             time += game.time.physicsElapsed;
+            timer += game.time.physicsElapsed;
 
             //enemygroup.forEach(game.physics.arcade.moveToXY, game.physics.arcade, false, entrypoint, 1000, 200);
             for (var i = 0; i < enemygroup.length; i++) {
@@ -277,7 +279,7 @@
             if (game.input.activePointer.isDown) {
                 if (isOverlapping(currentTower) == false) {
                     //game.physics.arcade.moveToPointer(tower, 200);
-                    towerPlace(1, typegroup[0]);
+                    towerPlace(1, typegroup[0], 1.0);
                     currentTower = currentTower++;
                     testText.text = 'Current Towers ' + currentTower;
                 }
@@ -286,8 +288,11 @@
             if (time > 2.100) {
                 if (typeof towergroup !== "undefined" && typeof enemygroup !== "undefined") {
                     for (var i = 0; i < towergroup.length; i++) {
+                        if(timer > towergroup[i].firetimer) {
                             //towergroup[i].fireAtTarget(enemygroup[0].sprite);
                             towergroup[i].fireAtClosest();
+                            timer = 0;
+                        }
                     }
                 }
             }
