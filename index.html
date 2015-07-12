@@ -67,38 +67,25 @@
        // enemy.body.collideWorldBounds = true;
         //enemy.body.gravity.y = 250;
         //enemy.body.velocity.x = 0;
-        enemies = [];
 
-        enemies.push(new createSomeEnemies(1, game,enemy).enemy);
+
+
         //for(var i = 0; i < 1;i++){}
 
        // createSomeEnemies();
+        //enemy = game.add.group();
+        spawnEnemy();
 
     }
-    createSomeEnemies =  function (index,game,player){
-        var x = 275;
-        var y = 275;
-        this.game = game;
-        this.health = 3;
-        this.player = player;
-        this.alive = true;
-        this.enemy = game.add.sprite(x,y,'enemy');
-        this.enemy.anchor.set(0.5);
-        game.physics.enable(this.enemy,Phaser.Physics.ARCADE);
-        this.enemy.body.gravity.y = 250;
-        this.enemy.body.velocity.x = 0;
 
-
+    function spawnEnemy(){
+        enemy = game.add.sprite(100,100,'enemy');
+        game.physics.enable(enemy,Phaser.Physics.ARCADE);
+        enemy.body.gravity.y = 500;
+        enemy.body.collideWorldBounds = true;
+        enemy.body.fixedRotation = true;
 
     }
-    createSomeEnemies.prototype.update = function(){
-        this.body.gravity.y = 250;
-        this.body.velocity.x = 0;
-        this.body.collideWorldBounds = true;
-        this.enemy.body.collideWorldBounds = true;
-        game.physics.arcade.collide(this.enemy, layer);
-
-        }
 
     function mapAndCollisions(){
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -280,13 +267,30 @@
     function update() {
 
         game.physics.arcade.collide(player, layer);
-        game.physics.arcade.collide(enemies,layer);
+        game.physics.arcade.collide(enemy,layer);
+        game.physics.arcade.collide(player,enemy);
         player.body.gravity.y = 250;
         player.body.velocity.x = 0;
         playerControls();
+        pathCounter +=1;
+        if(pathCounter >= 650) {
+            pathCounter = 0;
+        }
+       // enemyPath();
+        game.physics.arcade.moveToObject(enemy,player,50);
 
     }
+    var pathCounter = 0;
+    function enemyPath(){
+        if(pathCounter < 325){
+            enemy.body.velocity.x = -100;
 
+        }
+        else{
+            enemy.body.velocity.x = 100;
+
+        }
+    }
     function render () {
 
         //game.debug.text(game.time.physicsElapsed, 32, 32);
