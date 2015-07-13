@@ -45,6 +45,7 @@
     var enemyGroup;
     var enemy;
     var enemies;
+    var enemyPool;
     function create() {
 
         //maps and collisions
@@ -73,19 +74,27 @@
         //for(var i = 0; i < 1;i++){}
 
        // createSomeEnemies();
-        //enemy = game.add.group();
-        spawnEnemy();
-
+        enemyPool = this.game.add.group();
+        enemyPool.enableBody = true;
+        enemyPool.physicsBodyType = Phaser.Physics.ARCADE;
+        Enemy(this.game, 100, 100);
+        Enemy(this.game, 25,25);
     }
 
-    function spawnEnemy(){
-        enemy = game.add.sprite(100,100,'enemy');
+    Enemy =  function spawnEnemy(game, x, y){
+       //Phaser.Sprite.call(this,game,x,y,'enemy');
+       // this.enemy = this.add.group();
+
+        this.enemy = game.add.sprite(x,y,'enemy');
         game.physics.enable(enemy,Phaser.Physics.ARCADE);
-        enemy.body.gravity.y = 500;
-        enemy.body.collideWorldBounds = true;
-        enemy.body.fixedRotation = true;
+       // this.enemy.body.gravity.y = 500;
+        this.enemy.body.collideWorldBounds = true;
+        this.enemy.body.fixedRotation = true;
+       enemy.body.gravity.y = 1000;
+       this.enemyPool.add(this.enemy);
 
-    }
+
+    };
 
     function mapAndCollisions(){
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -267,17 +276,21 @@
     function update() {
 
         game.physics.arcade.collide(player, layer);
-        game.physics.arcade.collide(enemy,layer);
-        game.physics.arcade.collide(player,enemy);
+        game.physics.arcade.collide(enemyPool,layer);
+        game.physics.arcade.collide(player,enemyPool);
         player.body.gravity.y = 250;
         player.body.velocity.x = 0;
+
+
         playerControls();
         pathCounter +=1;
         if(pathCounter >= 650) {
             pathCounter = 0;
         }
-       // enemyPath();
-        game.physics.arcade.moveToObject(enemy,player,50);
+        enemyPool.forEach(function(){
+            enemyPath(this);
+        });
+        //game.physics.arcade.moveToObject(enemy,player,70);
 
     }
     var pathCounter = 0;
