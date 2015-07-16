@@ -55,6 +55,7 @@
     var enemyNumber;
     var animalsGroup;
     var counter;
+    var baddieMover;
     function create() {
 
         //maps and collisions
@@ -130,6 +131,7 @@ function createSomeAnimals(iHowMany){
         this.AnimalType = animaltype;
         this.frame = animaltype;
         pgame.physics.enable(this,Phaser.Physics.ARCADE);
+        game.time.events.loop(Phaser.Timer.SECOND * 3, animalPatrol, this);
 
     }
     Animal.prototype = Object.create(Phaser.Sprite.prototype);
@@ -138,11 +140,18 @@ function createSomeAnimals(iHowMany){
     // animal update move around
     Animal.prototype.update = function(){
         if (this.alive) {
+
             // move animals around
 
             switch (this.AnimalType) {
                 case 0: // not moving
-                    animalPatrol()
+                   // animalPatrol()
+
+                    animalsGroup.forEachAlive(function(animal){
+                        if (this.game.physics.arcade.distanceBetween(animal, player) < 300)
+                        game.physics.arcade.moveToXY(animal,player.body.x-70,Phaser.Math.snapTo(player.body.y,70),100);
+                       // game.physics.arcade.moveToObject(animal,player,70);
+                    },this);
                     animalAnimation();
                     break;
 
@@ -178,38 +187,47 @@ function createSomeAnimals(iHowMany){
 
 
        // enemyPatrol();
-        if(this.game.physics.arcade.distanceBetween(this.enemy,player) < 300)
+        if(this.game.physics.arcade.distanceBetween(animal,player) < 300)
         {
             enemy.body.gravity.y = -250;
         }
 
     }
+
+//        if(this.counter < 325){
+//            animal.body.velocity.x = -100;
+//
+//            animal.animations.play('left');
+//            // this.animalFacing = 'left';
+//
+//
+//        }
+//        else{
+//            animal.body.velocity.x = 100;
+//
+//            animal.animations.play('right');
+//            //this.animalFacing = 'right';
+//
+//
+//        }
+//    },this);
     function animalPatrol(){
 
-        counter +=1;
+        //counter +=1;
+        baddieMover = game.rnd.integerInRange(1, 2);
+
+        // simple if statement to choose if and which way the baddie moves
+
+        if (baddieMover == 1) {
+                this.body.velocity.x = 75;
+            this.animations.play('right');
+        }
+        else if (baddieMover == 2) {
+            this.body.velocity.x = -75;
+            this.animations.play('left');
+        }
 
 
-        animalsGroup.forEachAlive(function(animal){
-            if(this.counter >= 650){
-                this.counter = 0;
-            }
-            if(this.counter < 325){
-                animal.body.velocity.x = -100;
-
-                    animal.animations.play('left');
-                   // this.animalFacing = 'left';
-
-
-            }
-            else{
-                animal.body.velocity.x = 100;
-
-                    animal.animations.play('right');
-                    //this.animalFacing = 'right';
-
-
-            }
-        },this);
 
     }
 
@@ -232,7 +250,7 @@ function createSomeAnimals(iHowMany){
         player = game.add.sprite(32, 32, 'dude');
         game.physics.enable(player, Phaser.Physics.ARCADE);
 
-        // player.body.bounce.y = 0.2;
+        player.body.bounce.x = 1;
         player.body.collideWorldBounds = true;
         player.body.setSize(20, 32, 5, 16);
 
