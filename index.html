@@ -39,7 +39,8 @@
 
     var map,tileset,layer,player,animalFacing,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover;
     var facing = 'left';
-    var jumpTimer,bulletTime = 0;
+    var jumpTimer = 0;
+    var bulletTime = 0;
 
     function create() {
 
@@ -224,6 +225,7 @@ function createSomeAnimals(iHowMany){
         bullets.enableBody = true;
         bullets.physicsBodyType = Phaser.Physics.ARCADE;
         bullets.createMultiple(30,'spriteBullet');
+
         bullets.setAll('anchor.x', 0);
         bullets.setAll('anchor.y',0);
         bullets.setAll('outOfBoundsKill', true);
@@ -279,16 +281,17 @@ function createSomeAnimals(iHowMany){
 
             }
 
-            bullet.lifespan = 2000;
+            bullet.lifespan = 20000;
             // bullet.rotation = player.rotation;
             // bullet.anchor.setTo(.5,.5);
             // game.physics.arcade.velocityFromRotation(player.rotation, 800, bullet.body.velocity);
             // this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
 
-
+            //SIZE CHECK NIGGA
+            this.bullet.body.setSize(20, 32, 5, 16);
             this.bullet.body.velocity.x = shotDirX;
             this.bullet.body.velocity.y = shotDirY;
-            bullet.rotation = 60;
+            //bullet.body.rotation = 60;
             bulletTime = game.time.now + 100;
             //isProne = false;
         }
@@ -352,7 +355,7 @@ function createSomeAnimals(iHowMany){
             }
         }
         //include in jump if statement......disabling for debug
-        //&& player.body.onFloor() in jumpButton selection
+        // && player.body.onFloor() in jumpButton selection
         if (jumpButton.isDown && game.time.now > jumpTimer)
         {
             player.body.velocity.y = -250;
@@ -372,8 +375,8 @@ function createSomeAnimals(iHowMany){
         game.physics.arcade.collide(player, layer);
         game.physics.arcade.collide(enemiesGroup,layer);
         game.physics.arcade.collide(enemiesGroup,enemiesGroup);
-        game.physics.arcade.collide(player,enemiesGroup);
-
+        //game.physics.arcade.collide(player,enemiesGroup);
+        game.physics.arcade.overlap(bullets,enemiesGroup,hitEnemy,null,this);
         player.body.gravity.y = 250;
         player.body.velocity.x = 0;
 
@@ -385,15 +388,23 @@ function createSomeAnimals(iHowMany){
         //game.physics.arcade.moveToObject(enemy,player,70);
 
     }
+    function hitEnemy(bullet,enemy){
+        bullet.kill();
+    enemy.kill();
+    enemy.alive = false;
+    }
    // var pathCounter = 0;
     //overwrote to enemyPatrol for each enemy being alive
 
     function render () {
 
         //game.debug.text(game.time.physicsElapsed, 32, 32);
-        //game.debug.body(player);
+        game.debug.body(player);
+        enemiesGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
+        bullets.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
         //game.debug.bodyInfo(animalsGroup, 16, 24);
         //game.debug.text(enemiesGroup.length,32,32);
+        //this.game.debug.body(this.enemy);
         game.debug.inputInfo(32, 32);
     }
 
