@@ -34,6 +34,7 @@
         game.load.image('starBig', 'img/star2.png');
         game.load.image('background', 'img/background2.png');
         game.load.image('spriteBullet','img/spriteBulletG.png');
+        game.time.advancedTiming = true;
         //comment test
     }
 
@@ -235,6 +236,7 @@ function createSomeAnimals(iHowMany){
     function fireBullet(facing){
         var shotDirX = 0;
         var shotDirY = 0;
+        var shootingDown = false;
         var isProne = false;
         if(game.time.now > bulletTime)
         {
@@ -250,6 +252,11 @@ function createSomeAnimals(iHowMany){
                     //shotDirY = 250;
                     isProne = true;
                 }
+                else if (cursors.right.isDown && cursors.down.isDown) {
+                    shotDirX = 1000;
+                    shotDirY = 250;
+                    //shotDirY = this.game.rnd.between(-10,10);
+                }
                 else if (cursors.right.isDown) {
                     shotDirX = 1000;
                     //shotDirY = this.game.rnd.between(-10,10);
@@ -257,6 +264,10 @@ function createSomeAnimals(iHowMany){
                 else if (cursors.left.isDown && cursors.up.isDown) {
                     shotDirX = -1000;
                     shotDirY = -250;
+                }
+                else if (cursors.left.isDown && cursors.down.isDown) {
+                    shotDirX = -1000;
+                    shotDirY = 250;
                 }
                 else if (cursors.left.isDown && S.isDown) {
                     shotDirX = -1000;
@@ -271,12 +282,19 @@ function createSomeAnimals(iHowMany){
                 }
                 else if (cursors.down.isDown) {
                     shotDirY = 1000;
+                    shootingDown = true;
                 }
-                if (isProne == true) {
+                if (isProne) {
                     bullet.reset(player.body.x + 32, player.body.y + 64);
                 }
                 else{
-                    bullet.reset(player.body.x + 32, player.body.y + 32);
+                    if(shootingDown == true)
+                    {
+                        bullet.reset(player.body.x + 32, player.body.y + 0);
+                    }
+                    else {
+                        bullet.reset(player.body.x + 32, player.body.y + 0);
+                    }
                 }
 
             }
@@ -287,10 +305,12 @@ function createSomeAnimals(iHowMany){
             // game.physics.arcade.velocityFromRotation(player.rotation, 800, bullet.body.velocity);
             // this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
 
-            //SIZE CHECK NIGGA
-            this.bullet.body.setSize(20, 32, 5, 16);
+            //SIZE CHECK// COLLISION BOX//
+            this.bullet.body.setSize(20, 20, 18, 16);
             this.bullet.body.velocity.x = shotDirX;
             this.bullet.body.velocity.y = shotDirY;
+             //this.bullet.body.velocity.x = 5;
+            //this.bullet.body.velocity.y = 5;
             //bullet.body.rotation = 60;
             bulletTime = game.time.now + 100;
             //isProne = false;
@@ -375,7 +395,7 @@ function createSomeAnimals(iHowMany){
         game.physics.arcade.collide(player, layer);
         game.physics.arcade.collide(enemiesGroup,layer);
         game.physics.arcade.collide(enemiesGroup,enemiesGroup);
-        //game.physics.arcade.collide(player,enemiesGroup);
+        game.physics.arcade.collide(player,enemiesGroup);
         game.physics.arcade.overlap(bullets,enemiesGroup,hitEnemy,null,this);
         player.body.gravity.y = 250;
         player.body.velocity.x = 0;
@@ -399,13 +419,16 @@ function createSomeAnimals(iHowMany){
     function render () {
 
         //game.debug.text(game.time.physicsElapsed, 32, 32);
-        game.debug.body(player);
+        //game.debug.body(player);
+        //game.debug.inputInfo(32, 32);
+//        FPS DEBUG
+//        game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
         enemiesGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
         bullets.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
         //game.debug.bodyInfo(animalsGroup, 16, 24);
         //game.debug.text(enemiesGroup.length,32,32);
         //this.game.debug.body(this.enemy);
-        game.debug.inputInfo(32, 32);
+
     }
 
 
