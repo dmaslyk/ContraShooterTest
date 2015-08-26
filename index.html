@@ -38,7 +38,7 @@
         //comment test
     }
 
-    var map,tileset,layer,player,animalFacing,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover;
+    var map,tileset,layer,player,animalFacing,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
     var facing = 'left';
     var jumpTimer = 0;
     var bulletTime = 0;
@@ -93,6 +93,7 @@ function createSomeAnimals(iHowMany){
         }
         //animal.animations.add('myanimation', [ antype, antype+5, antype+10, antype+5], 8, true);
         //animal.play('myanimation', 5, true, false);
+        enemy.body.setSize(20, 32, 5, 16);
         enemy.animations.add('left', [0, 1, 2, 3], 10, true);
         enemy.animations.add('turn', [4], 20, true);
         enemy.animations.add('right', [5, 6, 7, 8], 10, true);
@@ -220,6 +221,17 @@ function createSomeAnimals(iHowMany){
         D = game.input.keyboard.addKey(Phaser.Keyboard.D);
         S = game.input.keyboard.addKey(Phaser.Keyboard.S);
     }
+    function createEnemeyBullets(){
+        enemyBullets = game.add.group();
+        enemyBullets.enableBody = true;
+        enemyBullets.physicsBodyType = Phaser.Physics.ARCADE;
+        enemyBullets.createMultiple(30,'spriteBullet');
+        enemyBullets.setAll('anchor.x',0);
+        enemyBullets.setAll('anchor.y',0);
+        enemyBullets.setAll('outOfBoundsKill',true);
+        enemyBullets.setAll('checkWorldBounds',true);
+
+    }
     function createBullets(){
         //Bullet!
         bullets = game.add.group();
@@ -284,16 +296,16 @@ function createSomeAnimals(iHowMany){
                     shotDirY = 1000;
                     shootingDown = true;
                 }
-                if (isProne) {
-                    bullet.reset(player.body.x + 32, player.body.y + 64);
+                if (isProne && player.body.onFloor() ) {
+                    bullet.reset(player.body.x - 28, player.body.y + 0);
                 }
                 else{
                     if(shootingDown == true)
                     {
-                        bullet.reset(player.body.x + 32, player.body.y + 0);
+                        bullet.reset(player.body.x - 28, player.body.y + 0);
                     }
                     else {
-                        bullet.reset(player.body.x + 32, player.body.y + 0);
+                        bullet.reset(player.body.x - 28, player.body.y - 18);
                     }
                 }
 
@@ -419,7 +431,7 @@ function createSomeAnimals(iHowMany){
     function render () {
 
         //game.debug.text(game.time.physicsElapsed, 32, 32);
-        //game.debug.body(player);
+        game.debug.body(player);
         //game.debug.inputInfo(32, 32);
 //        FPS DEBUG
 //        game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
