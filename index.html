@@ -34,6 +34,7 @@
         game.load.image('starBig', 'img/star2.png');
         game.load.image('background', 'img/background2.png');
         game.load.image('spriteBullet','img/spriteBulletG.png');
+        game.load.image('spriteEnemyBullet', 'img/enemyBullet.png');
         game.time.advancedTiming = true;
         //comment test
     }
@@ -50,7 +51,7 @@
 
         //create bullets
         createBullets();
-
+        createEnemyBullets();
 
 
         //  Un-comment this on to see the collision tilddes
@@ -114,11 +115,15 @@ function createSomeAnimals(iHowMany){
         this.xspeed = 1;
         this.yspeed = 1;
         counter = this.game.rnd.between(0,100);
-       // this.animalFacing = 'left';
+        this.animalFacing = null;
         this.EnemyType = 0;
         this.frame = enemytype;
         pgame.physics.enable(this,Phaser.Physics.ARCADE);
+        if(enemytype == 0)
         game.time.events.loop(Phaser.Timer.SECOND * 3, enemyPatrol, this);
+        game.time.events.loop(Phaser.Timer.SECOND * 2, enemyFireBullet, this);
+
+        //this.game.rnd.realInRange(1,8)
 
     }
     Enemy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -146,7 +151,7 @@ function createSomeAnimals(iHowMany){
                         //Phaser.Math.snapTo(enemy.body.x, 70) 3rd parameter of movetoxy
                        // game.physics.arcade.moveToObject(animal,player,70);
 
-                    animalAnimation();
+
                     break;
                 case 1:
                     break;
@@ -155,9 +160,7 @@ function createSomeAnimals(iHowMany){
             }
     };
 
-    function animalAnimation(){
 
-    }
 
 
 
@@ -175,11 +178,13 @@ function createSomeAnimals(iHowMany){
         if (baddieMover == 1) {
                 this.body.velocity.x = 75;
             this.animations.play('right');
+            this.animalFacing = 'right';
 
         }
         else if (baddieMover == 2) {
             this.body.velocity.x = -75;
             this.animations.play('left');
+            this.animalFacing = 'left';
         }
 
 
@@ -221,11 +226,11 @@ function createSomeAnimals(iHowMany){
         D = game.input.keyboard.addKey(Phaser.Keyboard.D);
         S = game.input.keyboard.addKey(Phaser.Keyboard.S);
     }
-    function createEnemeyBullets(){
+    function createEnemyBullets(){
         enemyBullets = game.add.group();
         enemyBullets.enableBody = true;
         enemyBullets.physicsBodyType = Phaser.Physics.ARCADE;
-        enemyBullets.createMultiple(30,'spriteBullet');
+        enemyBullets.createMultiple(30,'spriteEnemyBullet');
         enemyBullets.setAll('anchor.x',0);
         enemyBullets.setAll('anchor.y',0);
         enemyBullets.setAll('outOfBoundsKill',true);
@@ -243,6 +248,22 @@ function createSomeAnimals(iHowMany){
         bullets.setAll('anchor.y',0);
         bullets.setAll('outOfBoundsKill', true);
         bullets.setAll('checkWorldBounds', true);
+    }
+    function enemyFireBullet(){
+
+        if(this.alive) {
+            bulle = enemyBullets.getFirstExists(false);
+            if(bulle) {
+                bulle.reset(this.body.x - 28, this.body.y + 0);
+                bulle.body.setSize(20, 20, 18, 16);
+                if(this.animalFacing == 'left') {bulle.body.velocity.x = -100}
+                else {bulle.body.velocity.x = 100}
+               // bulle.body.velocity.x = 100;
+              //  bulle.body.velocity.y = 0;
+                bulle.lifespan = 10000;
+            }
+        }
+
     }
 
     function fireBullet(facing){
@@ -434,7 +455,8 @@ function createSomeAnimals(iHowMany){
         game.debug.body(player);
         //game.debug.inputInfo(32, 32);
 //        FPS DEBUG
-//        game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
+        game.debug.text(enemyBullets.length,32,32);
+        game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
         enemiesGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
         bullets.forEachAlive(game.debug.body,game.debug,"#ff9090",false);
         //game.debug.bodyInfo(animalsGroup, 16, 24);
