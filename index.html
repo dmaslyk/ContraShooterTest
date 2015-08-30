@@ -28,13 +28,14 @@
         game.load.image('tiles-1', 'img/tiles-1.png');
         game.load.spritesheet('dude', 'img/dude.png', 32, 48);
         game.load.spritesheet('enemy', 'img/dudeEnemy.png',32,48);
-        game.load.spritesheet('enemyGunner','img/dudeEnemyGunner.png',32,48);
+        game.load.spritesheet('enemyBomber','img/enemyBomber.png',32,48);
         game.load.spritesheet('droid', 'img/droid.png', 32, 32);
         game.load.image('starSmall', 'img/star.png');
         game.load.image('starBig', 'img/star2.png');
         game.load.image('background', 'img/background2.png');
         game.load.image('spriteBullet','img/spriteBulletG.png');
         game.load.image('spriteEnemyBullet', 'img/enemyBullet.png');
+        game.load.image('dynamite','img/dynamite.png');
         game.time.advancedTiming = true;
         //comment test
     }
@@ -86,13 +87,13 @@ function createSomeAnimals(iHowMany){
     {
         var x = game.rnd.integerInRange(0, CANVAS_WIDTH-80);
         var y = game.rnd.integerInRange(0, CANVAS_HEIGHT-80);
-        var antype = 0;
+        var type = 0;
         var enemy = this.enemiesGroup.getFirstDead();
         if(enemy === null){
-            enemy = new Enemy(game,x,y,antype);
+            enemy = new Enemy(game,x,y,type);
             this.enemiesGroup.add(enemy);
         }
-        //animal.animations.add('myanimation', [ antype, antype+5, antype+10, antype+5], 8, true);
+        //animal.animations.add('myanimation', [ type, type+5, type+10, type+5], 8, true);
         //animal.play('myanimation', 5, true, false);
         enemy.body.setSize(20, 32, 5, 16);
         enemy.animations.add('left', [0, 1, 2, 3], 10, true);
@@ -105,21 +106,21 @@ function createSomeAnimals(iHowMany){
         enemy.y = y;
 
         //animal.enableBody = true;
-        enemy.frame = antype;
-        enemy.EnemyType = antype;
+        enemy.frame = type;
+        enemy.EnemyType = type;
 
     }
 }
     var Enemy = function(pgame,x,y,enemytype){
         switch(enemytype)
         { case 0:Phaser.Sprite.call(this,pgame,x,y,'enemy'); break;
-            case 1:break;}
+            case 1:Phaser.Sprite.call(this,pgame,x,y,'enemyBomber');break;}
         this.enemytype = enemytype;
         this.xspeed = 1;
         this.yspeed = 1;
         counter = this.game.rnd.between(0,100);
         this.animalFacing = null;
-        this.EnemyType = 0;
+       // this.EnemyType = 0;
         this.frame = enemytype;
         pgame.physics.enable(this,Phaser.Physics.ARCADE);
         switch(this.enemytype) {
@@ -143,22 +144,24 @@ function createSomeAnimals(iHowMany){
 
             // move animals around
 
-            switch (this.enemytype) {
+            switch (this.enemytype ) {
                 case 0: // not moving
-                    if (this.game.physics.arcade.distanceBetween(this, player) < 300) {
+                    // animalPatrol()
+
+
+                    if (this.game.physics.arcade.distanceBetween(this, player) < 300)
+                    {
                         if (this.body.y < player.body.y) {
-                            // this.body.gravity.y = 5000;}
-                            if (this.body.onFloor()) {
-                                game.physics.arcade.moveToXY(this, player.body.x, player.body.y, 100);
-                            }
-                        }
-                        //Phaser.Math.snapTo(enemy.body.x, 70) 3rd parameter of movetoxy
-                        // game.physics.arcade.moveToObject(animal,player,70);
-
+                        // this.body.gravity.y = 5000;
+                       }
+                        if(this.body.onFloor()){ game.physics.arcade.moveToXY(this, player.body.x, player.body.y  , 100);}
                     }
-
+                    //Phaser.Math.snapTo(enemy.body.x, 70) 3rd parameter of movetoxy
+                    // game.physics.arcade.moveToObject(animal,player,70);
+                    break;
                 case 1:
                     break;
+
             }
         }
         ;
