@@ -35,12 +35,12 @@
         game.load.image('background', 'img/background2.png');
         game.load.image('spriteBullet','img/spriteBulletG.png');
         game.load.image('spriteEnemyBullet', 'img/enemyBullet.png');
-        game.load.image('dynamite','img/dynamite.png');
+        game.load.image('enemyDynamite','img/dynamite.png');
         game.time.advancedTiming = true;
         //comment test
     }
 
-    var map,tileset,layer,player,animalFacing,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
+    var map,tileset,layer,enemyDynamite,player,enemyDirection,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
     var facing = 'left';
     var jumpTimer = 0;
     var bulletTime = 0;
@@ -62,8 +62,8 @@
 
         //player animations and control mapping
         playerSettings();
-        player.x = 308;
-        player.y = 80;
+        player.x = 307;
+        player.y = 13;
 
        // enemy.body.collideWorldBounds = true;
         //enemy.body.gravity.y = 250;
@@ -87,7 +87,7 @@ function createSomeAnimals(iHowMany){
     {
         var x = game.rnd.integerInRange(0, CANVAS_WIDTH-80);
         var y = game.rnd.integerInRange(0, CANVAS_HEIGHT-80);
-        var type = 0;
+        var type = 1;
         var enemy = this.enemiesGroup.getFirstDead();
         if(enemy === null){
             enemy = new Enemy(game,x,y,type);
@@ -96,9 +96,7 @@ function createSomeAnimals(iHowMany){
         //animal.animations.add('myanimation', [ type, type+5, type+10, type+5], 8, true);
         //animal.play('myanimation', 5, true, false);
         enemy.body.setSize(20, 32, 5, 16);
-        enemy.animations.add('left', [0, 1, 2, 3], 10, true);
-        enemy.animations.add('turn', [4], 20, true);
-        enemy.animations.add('right', [5, 6, 7, 8], 10, true);
+
         enemy.body.gravity.y = 250;
         Phaser.Math.snapTo(enemy.body.y, 70);
         enemy.revive();
@@ -115,11 +113,21 @@ function createSomeAnimals(iHowMany){
         switch(enemytype)
         { case 0:Phaser.Sprite.call(this,pgame,x,y,'enemy'); break;
             case 1:Phaser.Sprite.call(this,pgame,x,y,'enemyBomber');break;}
+        switch(enemytype)
+        {
+            case 1:
+                this.animations.add('left', [0, 1, 2, 3], 10, true);
+                this.animations.add('turn', [4], 20, true);
+                this.animations.add('right', [5, 6, 7, 8], 10, true);
+                break;
+        }
         this.enemytype = enemytype;
+        this.isFollowing = false;
+        this.isAiming = false;
         this.xspeed = 1;
         this.yspeed = 1;
         counter = this.game.rnd.between(0,100);
-        this.animalFacing = null;
+        this.enemyDirection = null;
        // this.EnemyType = 0;
         this.frame = enemytype;
         pgame.physics.enable(this,Phaser.Physics.ARCADE);
@@ -129,6 +137,8 @@ function createSomeAnimals(iHowMany){
                 game.time.events.loop(Phaser.Timer.SECOND * this.game.rnd.realInRange(1, 8), enemyFireBullet, this);
                 break;
             case 1:
+                game.time.events.loop(Phaser.Timer.SECOND * 3, enemyPatrol, this);
+                game.time.events.loop(Phaser.Timer.SECOND * this.game.rnd.realInRange(1, 8), enemyFireBullet, this);
                 break;
 
         }
@@ -143,23 +153,39 @@ function createSomeAnimals(iHowMany){
         if (this.alive) {
 
             // move animals around
-
-            switch (this.enemytype ) {
+            switch (this.enemytype) {
                 case 0: // not moving
                     // animalPatrol()
-
-
                     if (this.game.physics.arcade.distanceBetween(this, player) < 300)
                     {
-                        if (this.body.y < player.body.y) {
-                        // this.body.gravity.y = 5000;
-                       }
+                        this.isFollowing = true;
                         if(this.body.onFloor()){ game.physics.arcade.moveToXY(this, player.body.x, player.body.y  , 100);}
+                    }
+                        else{
+                        this.isFollowing = false;
                     }
                     //Phaser.Math.snapTo(enemy.body.x, 70) 3rd parameter of movetoxy
                     // game.physics.arcade.moveToObject(animal,player,70);
                     break;
                 case 1:
+                    if (this.game.physics.arcade.distanceBetween(this, player) < 300)
+                    {
+                        this.isFollowing = true;
+
+                    }
+                    if(this.isFollowing)
+                    {
+                        if(this.game.physics.arcade.distanceBetween(this,player) < 300) {
+                            this.body.velocity.x = 0;
+                        }
+                        else{
+                            if (this.body.onFloor()) {
+                                game.physics.arcade.moveToXY(this, player.body.x, this.body.y, 100);
+                            }
+                        }
+                    }
+
+
                     break;
 
             }
@@ -177,23 +203,48 @@ function createSomeAnimals(iHowMany){
             if (this.body.x < 100 && baddieMover == 2) {
                 baddieMover = 1;
             }
-
-            if (baddieMover == 1) {
-                this.body.velocity.x = 75;
-                this.animations.play('right');
-                this.animalFacing = 'right';
-
+            else if (this.body.x > 600 && baddieMover == 1){
+                baddieMover = 2;
             }
-            else if (baddieMover == 2) {
-                this.body.velocity.x = -75;
-                this.animations.play('left');
-                this.animalFacing = 'left';
-            }
+            if(this.isFollowing == false) {
+                if (baddieMover == 1) {
+                    this.body.velocity.x = 100;
+                    {
+                        this.animations.play('right');
+                        this.enemyDirection = 'right';
+                    }
 
+
+                }
+                else if (baddieMover == 2) {
+                        this.body.velocity.x = -100;
+                        this.animations.play('left');
+                        this.enemyDirection = 'left';
+                }
+                else {
+                    this.body.velocity.x = 0;
+                    this.animations.stop();
+                }
+            }
+            else{
+                if(player.x > this.x)
+                {
+                    this.animations.play('right')
+                    this.enemyDirection = 'right';
+                }
+                else{
+                    this.animations.play('left');
+                    this.enemyDirection = 'left';
+                }
+            }
 
         }
 
+        function enemyFacing(){
 
+
+
+        }
         function mapAndCollisions() {
             game.physics.startSystem(Phaser.Physics.ARCADE);
             game.stage.backgroundColor = '#000000';
@@ -239,6 +290,15 @@ function createSomeAnimals(iHowMany){
             enemyBullets.setAll('outOfBoundsKill', true);
             enemyBullets.setAll('checkWorldBounds', true);
 
+            enemyDynamite = game.add.group();
+            enemyDynamite.enableBody = true;
+            enemyDynamite.physicsBodyType = Phaser.Physics.ARCADE;
+            enemyDynamite.createMultiple(30,'enemyDynamite');
+            enemyDynamite.setAll('anchor.x',0.5);
+            enemyDynamite.setAll('anchor.y',0.5);
+            enemyDynamite.setAll('outOfBoundsKill',true);
+            enemyDynamite.setAll('checkWorldBounds',true);
+
         }
 
         function createBullets() {
@@ -247,31 +307,62 @@ function createSomeAnimals(iHowMany){
             bullets.enableBody = true;
             bullets.physicsBodyType = Phaser.Physics.ARCADE;
             bullets.createMultiple(30, 'spriteBullet');
-
             bullets.setAll('anchor.x', 0);
             bullets.setAll('anchor.y', 0);
             bullets.setAll('outOfBoundsKill', true);
             bullets.setAll('checkWorldBounds', true);
+
+
+
+
         }
 
         function enemyFireBullet() {
 
-            if (this.alive) {
-                bulle = enemyBullets.getFirstExists(false);
-                if (bulle) {
-                    bulle.reset(this.body.x - 28, this.body.y + 0);
-                    bulle.body.setSize(20, 20, 18, 16);
-                    if (this.animalFacing == 'left') {
-                        bulle.body.velocity.x = -100
+                if(this.alive) {
+                    switch(this.enemytype) {
+                        case 0:
+
+                            bulle = enemyBullets.getFirstExists(false);
+
+                            if (bulle) {
+
+                                bulle.reset(this.body.x - 28, this.body.y + 0);
+                                bulle.body.setSize(20, 20, 18, 16);
+                                if (this.enemyDirection == 'left') {
+                                    bulle.body.velocity.x = -150
+                                }
+                                else {
+                                    bulle.body.velocity.x = 150
+                                }
+
+                                bulle.lifespan = 10000;
+                            }
+                            break;
+                        case 1:
+
+                            bulle = enemyDynamite.getFirstExists(false);
+                            if(this.isFollowing)
+                            if (bulle) {
+                                var a = player.x;
+                                bulle.reset(this.body.x - 28, this.body.y + 0);
+                                bulle.body.rotation = 0;
+                                bulle.body.setSize(30, 35, -2, 9);
+                                if (this.enemyDirection == 'left') {
+                                    bulle.body.velocity.x = -150;
+                                    bulle.body.velocity.y = -100;
+                                }
+                                else {
+                                    bulle.body.velocity.x = 150;
+                                    bulle.body.velocity.y = -200;
+                                }
+
+                                bulle.body.gravity.y = 200;
+                                bulle.lifespan = 10000;
+                            }
+                            break;
                     }
-                    else {
-                        bulle.body.velocity.x = 100
-                    }
-                    // bulle.body.velocity.x = 100;
-                    //  bulle.body.velocity.y = 0;
-                    bulle.lifespan = 10000;
                 }
-            }
 
         }
 
@@ -413,9 +504,6 @@ function createSomeAnimals(iHowMany){
         //var thing = game.rnd.integerInRange(0, 3);
         //var foo = arr[thing];
         //
-        function thingy() {
-
-        }
 
         function update() {
 
@@ -453,12 +541,13 @@ function createSomeAnimals(iHowMany){
 
             //game.debug.text(game.time.physicsElapsed, 32, 32);
             game.debug.body(player, "#ff9090", false);
-            //game.debug.inputInfo(32, 32);
+            game.debug.inputInfo(32, 32);
 //        FPS DEBUG
             game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
             enemiesGroup.forEachAlive(game.debug.body, game.debug, "#ff9090", false);
             bullets.forEachAlive(game.debug.body, game.debug, "#ff9090", false);
             enemyBullets.forEachAlive(game.debug.body, game.debug, "#ff9090", false);
+            enemyDynamite.forEachAlive(game.debug.body, game.debug, "#ff9090", false);
             //game.debug.bodyInfo(animalsGroup, 16, 24);
             //game.debug.text(enemiesGroup.length,32,32);
             //this.game.debug.body(this.enemy);
