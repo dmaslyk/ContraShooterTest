@@ -36,11 +36,12 @@
         game.load.image('spriteBullet','img/spriteBulletG.png');
         game.load.image('spriteEnemyBullet', 'img/enemyBullet.png');
         game.load.image('enemyDynamite','img/dynamite.png');
+        game.load.spritesheet('explosion','img/explosion.png',32,32);
         game.time.advancedTiming = true;
         //comment test
     }
 
-    var map,tileset,layer,enemyDynamite,player,enemyDirection,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
+    var map,tileset,layer,enemyDynamite,explosions,player,enemyDirection,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
     var facing = 'left';
     var jumpTimer = 0;
     var bulletTime = 0;
@@ -64,6 +65,8 @@
         playerSettings();
         player.x = 307;
         player.y = 13;
+
+
 
        // enemy.body.collideWorldBounds = true;
         //enemy.body.gravity.y = 250;
@@ -109,6 +112,7 @@ function createSomeAnimals(iHowMany){
 
     }
 }
+
     var Enemy = function(pgame,x,y,enemytype){
         switch(enemytype)
         { case 0:Phaser.Sprite.call(this,pgame,x,y,'enemy'); break;
@@ -124,8 +128,6 @@ function createSomeAnimals(iHowMany){
         this.enemytype = enemytype;
         this.isFollowing = false;
         this.isAiming = false;
-        this.xspeed = 1;
-        this.yspeed = 1;
         counter = this.game.rnd.between(0,100);
         this.enemyDirection = null;
        // this.EnemyType = 0;
@@ -144,7 +146,7 @@ function createSomeAnimals(iHowMany){
         }
         //this.game.rnd.realInRange(1,8)
 
-    }
+    };
     Enemy.prototype = Object.create(Phaser.Sprite.prototype);
     Enemy.prototype.constructor = Enemy;
 
@@ -190,8 +192,8 @@ function createSomeAnimals(iHowMany){
 
             }
         }
-        ;
-    }
+
+    };
 
 
         function enemyPatrol() {
@@ -290,6 +292,16 @@ function createSomeAnimals(iHowMany){
             enemyBullets.setAll('outOfBoundsKill', true);
             enemyBullets.setAll('checkWorldBounds', true);
 
+
+            explosions = game.add.group();
+            explosions.physicsBodyType = Phaser.Physics.ARCADE;
+            explosions.createMultiple(30, 'spriteEnemyBullet');
+            explosions.setAll('anchor.x', 0);
+            explosions.setAll('anchor.y', 0);
+            explosions.setAll('outOfBoundsKill', true);
+            explosions.setAll('checkWorldBounds', true);
+
+
             enemyDynamite = game.add.group();
             enemyDynamite.enableBody = true;
             enemyDynamite.physicsBodyType = Phaser.Physics.ARCADE;
@@ -344,9 +356,9 @@ function createSomeAnimals(iHowMany){
                             bulle = enemyDynamite.getFirstExists(false);
                             if(this.isFollowing)
                             if (bulle) {
-                                var a = player.x;
                                 bulle.reset(this.body.x - 28, this.body.y + 0);
                                 bulle.body.rotation = 0;
+                                bulle.hasBlown = false;
                                 bulle.body.setSize(30, 35, -2, 9);
                                 if (this.enemyDirection == 'left') {
                                     bulle.body.velocity.x = -150;
@@ -361,6 +373,7 @@ function createSomeAnimals(iHowMany){
                                 bulle.lifespan = 10000;
                             }
                             break;
+
                     }
                 }
 
@@ -512,7 +525,9 @@ function createSomeAnimals(iHowMany){
             game.physics.arcade.collide(enemiesGroup, enemiesGroup);
             game.physics.arcade.collide(player, enemiesGroup);
             game.physics.arcade.overlap(bullets, enemiesGroup, hitEnemy, null, this);
-            game.physics.arcade.overlap(enemyBullets, player, hitPlayer, null, this);
+           // game.physics.arcade.overlap(enemyBullets, player, hitPlayer, null, this);
+            game.physics.arcade.overlap(enemyDynamite, player, hitPlayer, null, this);
+            game.physics.arcade.collide(enemyDynamite, layer,hitFloor);
             player.body.gravity.y = 250;
             player.body.velocity.x = 0;
 
@@ -524,8 +539,34 @@ function createSomeAnimals(iHowMany){
 
         }
 
-        function hitPlayer(bullet, player) {
+        function hitFloor(enemyDynamite){
 
+            if(!enemyDynamite.hasBlown)
+            {
+                var exp = game.add.sprite(enemyDynamite.x ,enemyDynamite.y,'explosion');
+                exp.anchor.setTo(0.5,0.5);
+                exp.scale.setTo(10);
+
+                var boom = exp.animations.add('boom');
+                exp.animations.play('boom',15,false,true);
+
+
+                enemyDynamite.body.velocity.x = 0;
+                enemyDynamite.body.setSize(150, 150);
+                enemyDynamite.hasBlown = true;
+                enemyDynamite.lifespan = 100;
+                explosions.add(exp);
+            }
+
+
+           // enemyDynamite.kill();
+
+
+
+
+        }
+        function hitPlayer(bullet, player) {
+        bullet.kill();
         }
 
         function hitEnemy(bullet, enemy) {
