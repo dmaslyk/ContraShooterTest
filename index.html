@@ -43,7 +43,7 @@
         //comment test
     }
 
-    var map,tileset,layer,enemyDynamite,explosions,player,enemyDirection,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
+    var map,tileset,layer,enemyDynamite,boomerGroup,explosions,player,enemyDirection,cursors,jumpButton,bg,bullets,enemy,enemies,enemiesGroup,counter,baddieMover,enemyBullets;
     var facing = 'left';
     var jumpTimer = 0;
     var bulletTime = 0;
@@ -65,8 +65,9 @@
 
         //player animations and control mapping
         playerSettings();
-        player.x = 307;
-        player.y = 13;
+        // 307,13
+        player.x = 33;
+        player.y = 220;
 
 
 
@@ -138,6 +139,8 @@
             enemyDynamite.setAll('outOfBoundsKill',true);
             enemyDynamite.setAll('checkWorldBounds',true);
 
+            boomerGroup = game.add.group();
+
         }
 
 
@@ -157,13 +160,16 @@
         function update() {
 
             game.physics.arcade.collide(player, layer);
-            game.physics.arcade.collide(enemiesGroup, layer);
+            game.physics.arcade.collide(enemiesGroup, layer,enemyGround);
             game.physics.arcade.collide(enemiesGroup, enemiesGroup);
             game.physics.arcade.collide(player, enemiesGroup);
             game.physics.arcade.overlap(bullets, enemiesGroup, hitEnemy, null, this);
            // game.physics.arcade.overlap(enemyBullets, player, hitPlayer, null, this);
             game.physics.arcade.overlap(enemyDynamite, player, hitPlayer, null, this);
-            game.physics.arcade.collide(enemyDynamite, layer,hitFloor);
+            //game.physics.arcade.overlap(enemiesGroup, player, hitPlayer, null, this);
+            game.physics.arcade.collide(enemyDynamite , layer,hitFloor);
+            game.physics.arcade.collide(boomerGroup, layer,hitFloor);
+            //game.physics.arcade.collide(explosions, layer,hitFloor);
             player.body.gravity.y = 250;
             player.body.velocity.x = 0;
 
@@ -174,7 +180,15 @@
             //game.physics.arcade.moveToObject(enemy,player,70);
 
         }
+        function enemyGround(enemiesGroup){
+            switch(enemiesGroup.enemytype){
+                case 2:
+                        hitFloor(enemiesGroup);
+                        //enemiesGroup.kill();
+                    break;
+            }
 
+        }
         function hitFloor(enemyDynamite){
 
             if(!enemyDynamite.hasBlown)
@@ -188,13 +202,16 @@
 
 
                 enemyDynamite.body.velocity.x = 0;
-                enemyDynamite.body.setSize(150, 150);
+                enemyDynamite.body.velocity.y = 0;
+                if(enemyDynamite.enemytype == 2)
+                {
+                    enemyDynamite.body.setSize(150, 150,-40,-40);
+                }
+                else {enemyDynamite.body.setSize(150, 150);}
                 enemyDynamite.hasBlown = true;
                 enemyDynamite.lifespan = 100;
                 explosions.add(exp);
             }
-
-
            // enemyDynamite.kill();
 
 
