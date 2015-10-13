@@ -4,7 +4,8 @@ function createEnemies(iHowMany){
     {
         var x = game.rnd.integerInRange(0, CANVAS_WIDTH-80);
         var y = game.rnd.integerInRange(0, CANVAS_HEIGHT-80);
-        var type = game.rnd.integerInRange(0,2);
+        //var type = game.rnd.integerInRange(0,2);
+        var type = 3;
         var enemy = this.enemiesGroup.getFirstDead();
         if(enemy === null){
             enemy = new Enemy(game,x,y,type);
@@ -19,7 +20,7 @@ function createEnemies(iHowMany){
         enemy.revive();
         enemy.x = x;
         enemy.y = y;
-
+        enemy.health = 3;
         //animal.enableBody = true;
         enemy.frame = type;
         enemy.EnemyType = type;
@@ -31,10 +32,15 @@ var Enemy = function(pgame,x,y,enemytype){
     {   case 0:Phaser.Sprite.call(this,pgame,x,y,'enemy');
                 break;
         case 1:Phaser.Sprite.call(this,pgame,x,y,'enemyBomber');
+            this.scale.setTo(2);
+            this.anchor.setTo(0.5,0.5);
                 break;
         case 2:Phaser.Sprite.call(this,pgame,x,y,'enemy');
-                break;}
-
+                break;
+        case 3:Phaser.Sprite.call(this,pgame,x,y,'enemyBomber');
+                     this.scale.setTo(2);
+            this.anchor.setTo(0.5,0.5);
+    break;}
             this.animations.add('left', [0, 1, 2, 3], 10, true);
             this.animations.add('turn', [4], 20, true);
             this.animations.add('right', [5, 6, 7, 8], 10, true);
@@ -43,6 +49,7 @@ var Enemy = function(pgame,x,y,enemytype){
     this.enemytype = enemytype;
     this.isFollowing = false;
     this.isAiming = false;
+    this.isEnraged = false;
     counter = this.game.rnd.between(0,100);
     this.enemyDirection = null;
     // this.EnemyType = 0;
@@ -65,6 +72,10 @@ var Enemy = function(pgame,x,y,enemytype){
             boomerGroup.add(this);
             game.time.events.loop(Phaser.Timer.SECOND,enemyFly,this);
             //game.time.events.loop(Phaser.Timer.SECOND)
+            break;
+        case 3:
+            this.body.gravity.y = 250;
+            game.time.events.loop(Phaser.Timer.SECOND * 3, enemyPatrol, this);
             break;
 
     }
@@ -117,6 +128,11 @@ Enemy.prototype.update = function() {
                     game.physics.arcade.moveToXY(this, player.body.x + 50, this.body.y, 200);
                 }
                 break;
+            //TODO give straffing speed and enraged straffing speed
+            case 3:
+                this.isFollowing = true;
+
+
 
         }
     }
@@ -150,6 +166,8 @@ function enemyPatrol() {
 
     //counter +=1;
    var baddieMover = game.rnd.integerInRange(1, 2);
+    var xRSpeed = 100;
+    var xLSpeed = -100;
 
     // simple if statement to choose if and which way the baddie moves
     if (this.body.x < 100 && baddieMover == 2) {
@@ -178,13 +196,16 @@ function enemyPatrol() {
             this.animations.stop();
         }
     }
+    //REMINDER HERES WHERE I CHANGED THE FUCKING VELOCITY
     else{
         if(player.x > this.x)
-        {
+            {this.body.velocity.x = 100;
             this.animations.play('right')
             this.enemyDirection = 'right';
         }
         else{
+
+            this.body.velocity.x = -100;
             this.animations.play('left');
             this.enemyDirection = 'left';
         }

@@ -224,8 +224,16 @@
 
         function hitEnemy(bullet, enemy) {
             bullet.kill();
-            enemy.kill();
-            enemy.alive = false;
+            enemy.health--;
+            if(enemy.enemytype == 3)
+            {
+                this.isEnraged = true;
+            }
+            if(enemy.health < 1)
+            {
+                enemy.kill();
+                enemy.alive = false;
+            }
         }
 
         // var pathCounter = 0;
